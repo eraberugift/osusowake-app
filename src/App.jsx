@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import {
   getCurrentUserId, fetchItems, insertItem,
-  updateItemFields, deleteItemRow, uploadItemImage
+  updateItemFields, deleteItemRow, uploadItemImage,
+  signInWithGoogle, onAuthStateChange, isAnonymousUser, supabase
 } from './storage.js';
 
 const COLORS = {
@@ -88,6 +89,7 @@ function Toast({ message }) {
 export default function App() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [viewOwnerId, setViewOwnerId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -120,6 +122,11 @@ export default function App() {
         const uid = await getCurrentUserId();
         if (!mounted) return;
         setCurrentUserId(uid);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (mounted) setCurrentUser(user);
+
+        onAuthStateChange((u) => setCurrentUser(u));
 
         const params = new URLSearchParams(window.location.search);
         const u = params.get('u');
@@ -277,6 +284,18 @@ export default function App() {
             {isOwnMode ? 'あなたのリスト' : '友達からのおすそわけ'}
           </p>
         </div>
+
+        {isOwnMode && isAnonymousUser(currentUser) && (
+          <div className="max-w-md mx-auto px-4 pb-3">
+            <button
+              onClick={signInWithGoogle}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold"
+              style={{ backgroundColor: COLORS.indigoSoft, color: COLORS.indigo }}
+            >
+              💡 Googleでログインして、リストを保存・通知を受け取る
+            </button>
+          </div>
+        )}
 
         {isOwnMode ? (
           <div className="max-w-md mx-auto px-4 pb-3 relative">

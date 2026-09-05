@@ -92,3 +92,24 @@ export async function uploadItemImage(dataUrl) {
   const { data } = supabase.storage.from('item-images').getPublicUrl(fileName);
   return data.publicUrl;
 }
+
+export async function signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.href,
+    },
+  });
+  if (error) throw error;
+}
+
+export function onAuthStateChange(callback) {
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    callback(session?.user ?? null);
+  });
+  return data.subscription;
+}
+
+export function isAnonymousUser(user) {
+  return !!user?.is_anonymous;
+}
