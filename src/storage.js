@@ -3,44 +3,82 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
-export const storage = {
-  async get(key) {
-    const { data, error } = await supabase
-      .from('app_data')
-      .select('value')
-      .eq('key', key)
-      .single();
+// 今のブラウザ専用の「あなたのID」を取得する。
+// まだ一度もアクセスしたことがなければ、裏側で自動的に匿名アカウントが作られる（画面には何も表示されない）
+let authPromise = null;
 
-    if (error || !data) {
-      throw new Error(`key not found: ${key}`);
-    }
-    return { key, value: JSON.stringify(data.value) };
-  },
+export function getCurrentUserId() {
+  if (authPromise) return authPromise;
 
-  async set(key, value) {
-    const { error } = await supabase
-      .from('app_data')
-      .upsert({ key, value: JSON.parse(value), updated_at: new Date().toISOString() });
+  authPromise = (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) return session.user.id;
 
-    if (error) {
-      throw error;
-    }
-    return { key, value };
-  },
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) throw error;
+    return data.user.id;
+  })();
 
-  async delete(key) {
-    const { error } = await supabase.from('app_data').delete().eq('key', key);
-    if (error) {
-      throw error;
-    }
-    return { key, deleted: true };
-  },
-};
+  return authPromise;
+}
+
+function rowToItem(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    condition: row.condition,
+    description: row.description,
+    image: row.image,
+    status: row.status,
+    claimerName: row.claimer_name,
+    createdAt: new Date(row.created_at).getTime(),
+    ownerId: row.owner_id,
+  };
+}
+
+export async function fetchItems(ownerId) {
+  const { data, error } = await supabase
+    .from('items')
+    .select('*')
+    .eq('owner_id', ownerId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(rowToItem);
+}
+
+export async function insertItem(ownerId, item) {
+  const { data, error } = await supabase
+    .from('items')
+    .insert({
+      owner_id: ownerId,
+      name: item.name,
+      condition: item.condition,
+      description: item.description,
+      image: item.image,
+      status: 'open',
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return rowToItem(data);
+}
+
+export async function updateItemFields(id, patch) {
+  const dbPatch = {};
+  if (patch.status) dbPatch.status = patch.status;
+  if (patch.claimerName !== undefined) dbPatch.claimer_name = patch.claimerName;
+  const { error } = await supabase.from('items').update(dbPatch).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteItemRow(id) {
+  const { error } = await supabase.from('items').delete().eq('id', id);
+  if (error) throw error;
+}
 
 export async function uploadItemImage(dataUrl) {
-  // canvasで作った圧縮済みのdataURL画像を、実際のファイルに変換してアップロードする
   const res = await fetch(dataUrl);
   const blob = await res.blob();
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;

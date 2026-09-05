@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Camera, Gift, Package, MessageCircle, X, Trash2,
-  CheckCircle2, Loader2, Plus, Users, ChevronLeft,
+  CheckCircle2, Loader2, Plus, ChevronLeft,
   AlertTriangle, Clock, Link2, Share2
 } from 'lucide-react';
-import { storage, uploadItemImage } from './storage.js';
+import {
+  getCurrentUserId, fetchItems, insertItem,
+  updateItemFields, deleteItemRow, uploadItemImage
+} from './storage.js';
 
 const COLORS = {
   bg: '#FAF8F3',
@@ -23,41 +26,6 @@ const COLORS = {
 };
 
 const CONDITIONS = ['美品', '目立つ傷なし', '使用感あり'];
-const COMMUNITY_NAME = 'テニスサークル不要品シェア';
-const STORAGE_KEY = 'osusowake-items-v2';
-
-const SEED_ITEMS = [
-  {
-    id: 'seed-1',
-    name: 'テニスバッグ（ヨネックス）',
-    condition: '目立つ傷なし',
-    description: 'ラケット2本入る大きめサイズです。ファスナーの引き手が少し傷んでいますが使用には問題ありません。',
-    image: null,
-    status: 'open',
-    claimerName: '',
-    createdAt: Date.now() - 1000 * 60 * 60 * 5,
-  },
-  {
-    id: 'seed-2',
-    name: 'グリップテープ 未使用3個セット',
-    condition: '美品',
-    description: '色違いで買いすぎたので3個お譲りします。未開封です。',
-    image: null,
-    status: 'done',
-    claimerName: '',
-    createdAt: Date.now() - 1000 * 60 * 60 * 30,
-  },
-  {
-    id: 'seed-3',
-    name: 'テニスシューズ 24.5cm',
-    condition: '目立つ傷なし',
-    description: '数回しか履いていません。サイズが合わず出品します。',
-    image: null,
-    status: 'kept',
-    claimerName: 'さとう',
-    createdAt: Date.now() - 1000 * 60 * 60 * 10,
-  },
-];
 
 function compressImage(file) {
   return new Promise((resolve) => {
@@ -118,8 +86,11 @@ function Toast({ message }) {
 }
 
 export default function App() {
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [viewOwnerId, setViewOwnerId] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [formOpen, setFormOpen] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [viewItem, setViewItem] = useState(null);
@@ -140,52 +111,32 @@ export default function App() {
   const toastTimer = useRef(null);
   const fileRef = useRef(null);
 
-  useEffect(() => {
-    let settled = false;
-    const finish = () => {
-      if (!settled) {
-        settled = true;
-        setLoading(false);
-      }
-    };
-    // 読み込みが5秒以上かかる場合は、待たせすぎないよう空の状態で表示を始める
-    const safetyTimer = setTimeout(() => {
-      if (!settled) {
-        setItems((cur) => (cur.length ? cur : SEED_ITEMS));
-        finish();
-      }
-    }, 5000);
+  const isOwnMode = currentUserId && viewOwnerId && currentUserId === viewOwnerId;
 
+  useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
-        const result = await storage.get(STORAGE_KEY);
-        const parsed = result?.value ? JSON.parse(result.value) : null;
-        if (parsed && Array.isArray(parsed) && parsed.length > 0) {
-          setItems(parsed);
-        } else {
-          setItems(SEED_ITEMS);
-          await storage.set(STORAGE_KEY, JSON.stringify(SEED_ITEMS));
-        }
+        const uid = await getCurrentUserId();
+        if (!mounted) return;
+        setCurrentUserId(uid);
+
+        const params = new URLSearchParams(window.location.search);
+        const u = params.get('u');
+        const owner = u || uid;
+        setViewOwnerId(owner);
+
+        const list = await fetchItems(owner);
+        if (!mounted) return;
+        setItems(list);
       } catch (e) {
-        setItems(SEED_ITEMS);
-        try { await storage.set(STORAGE_KEY, JSON.stringify(SEED_ITEMS)); } catch (_) {}
+        showToast('読み込みに失敗しました');
       } finally {
-        clearTimeout(safetyTimer);
-        finish();
+        if (mounted) setLoading(false);
       }
     })();
-
-    return () => clearTimeout(safetyTimer);
+    return () => { mounted = false; };
   }, []);
-
-  const persist = async (next) => {
-    setItems(next);
-    try {
-      await storage.set(STORAGE_KEY, JSON.stringify(next));
-    } catch (e) {
-      showToast('保存に失敗しました。もう一度お試しください');
-    }
-  };
 
   const showToast = (msg, ms = 2600) => {
     setToast(msg);
@@ -211,45 +162,48 @@ export default function App() {
   };
 
   const submitItem = async () => {
-  if (!name.trim()) {
-    showToast('品名を入力してください');
-    return;
-  }
-
-  let imageUrl = null;
-  if (preview) {
-    try {
-      setCompressing(true);
-      imageUrl = await uploadItemImage(preview);
-    } catch (e) {
-      showToast('画像のアップロードに失敗しました');
-      setCompressing(false);
+    if (!name.trim()) {
+      showToast('品名を入力してください');
       return;
     }
-    setCompressing(false);
-  }
 
-  const newItem = {
-    id: `item-${Date.now()}`,
-    name: name.trim(),
-    condition,
-    description: description.trim(),
-    image: imageUrl,
-    status: 'open',
-    claimerName: '',
-    createdAt: Date.now(),
+    let imageUrl = null;
+    if (preview) {
+      try {
+        setCompressing(true);
+        imageUrl = await uploadItemImage(preview);
+      } catch (e) {
+        showToast('画像のアップロードに失敗しました');
+        setCompressing(false);
+        return;
+      }
+      setCompressing(false);
+    }
+
+    try {
+      const newItem = await insertItem(currentUserId, {
+        name: name.trim(),
+        condition,
+        description: description.trim(),
+        image: imageUrl,
+      });
+      setItems((cur) => [newItem, ...cur]);
+      resetForm();
+      setFormOpen(false);
+      showToast('リストに登録しました！');
+    } catch (e) {
+      showToast('登録に失敗しました');
+    }
   };
-  persist([newItem, ...items]);
-  resetForm();
-  setFormOpen(false);
-  showToast('リストに登録しました！');
-};
 
-  const shareText = `${COMMUNITY_NAME}の「おすそわけリンク」を見てね`;
-  const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+  const shareUrl = viewOwnerId
+    ? `${window.location.origin}${window.location.pathname}?u=${viewOwnerId}`
+    : window.location.href;
+  const shareText = 'おすそわけリンクを見てね';
+  const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
 
   const copyLink = () => {
-    navigator.clipboard?.writeText(window.location.href).catch(() => {});
+    navigator.clipboard?.writeText(shareUrl).catch(() => {});
     showToast('リンクをコピーしました！');
   };
 
@@ -259,37 +213,47 @@ export default function App() {
     setClaimerInput(item.claimerName || '');
   };
 
-  const confirmClaim = () => {
+  const confirmClaim = async () => {
     if (!claimerInput.trim()) {
       showToast('お名前を入力してください');
       return;
     }
-    const updated = items.map((it) =>
-      it.id === modalItem.id ? { ...it, status: 'kept', claimerName: claimerInput.trim() } : it
-    );
-    persist(updated);
-    const next = { ...modalItem, status: 'kept', claimerName: claimerInput.trim() };
-    setModalItem(next);
-    setViewItem((v) => (v && v.id === next.id ? next : v));
-    setModalStage('action');
+    try {
+      await updateItemFields(modalItem.id, { status: 'kept', claimerName: claimerInput.trim() });
+      const patch = { status: 'kept', claimerName: claimerInput.trim() };
+      setItems((cur) => cur.map((it) => (it.id === modalItem.id ? { ...it, ...patch } : it)));
+      setModalItem({ ...modalItem, ...patch });
+      setViewItem((v) => (v && v.id === modalItem.id ? { ...v, ...patch } : v));
+      setModalStage('action');
+    } catch (e) {
+      showToast('更新に失敗しました');
+    }
   };
 
-  const markDone = (item) => {
-    const updated = items.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it));
-    persist(updated);
-    setViewItem((v) => (v && v.id === item.id ? { ...v, status: 'done' } : v));
-    setOwnerMenuOpen(false);
-    showToast('お譲り確定にしました');
+  const markDone = async (item) => {
+    try {
+      await updateItemFields(item.id, { status: 'done' });
+      setItems((cur) => cur.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it)));
+      setViewItem((v) => (v && v.id === item.id ? { ...v, status: 'done' } : v));
+      setOwnerMenuOpen(false);
+      showToast('お譲り確定にしました');
+    } catch (e) {
+      showToast('更新に失敗しました');
+    }
   };
 
   const requestDelete = (item) => setConfirmDelete(item);
 
-  const doDelete = () => {
-    const updated = items.filter((it) => it.id !== confirmDelete.id);
-    persist(updated);
-    showToast('削除しました');
-    setViewItem((v) => (v && v.id === confirmDelete.id ? null : v));
-    setConfirmDelete(null);
+  const doDelete = async () => {
+    try {
+      await deleteItemRow(confirmDelete.id);
+      setItems((cur) => cur.filter((it) => it.id !== confirmDelete.id));
+      showToast('削除しました');
+      setViewItem((v) => (v && v.id === confirmDelete.id ? null : v));
+      setConfirmDelete(null);
+    } catch (e) {
+      showToast('削除に失敗しました');
+    }
   };
 
   const lineDummyUrl = (item) =>
@@ -304,65 +268,70 @@ export default function App() {
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
       `}</style>
 
-      {/* Header */}
       <header className="sticky top-0 z-30 border-b backdrop-blur" style={{ backgroundColor: 'rgba(250,248,243,0.94)', borderColor: COLORS.border }}>
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="font-maru font-bold text-lg leading-tight" style={{ color: COLORS.accent }}>
-              おすそわけリンク（仮）
-            </h1>
-            <p className="text-xs mt-0.5" style={{ color: COLORS.inkSoft }}>{COMMUNITY_NAME}</p>
-          </div>
-          <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs" style={{ backgroundColor: COLORS.indigoSoft, color: COLORS.indigo }}>
-            <Users size={13} />
-            <span className="font-medium">共有中</span>
-          </div>
+        <div className="max-w-md mx-auto px-4 py-3">
+          <h1 className="font-maru font-bold text-lg leading-tight" style={{ color: COLORS.accent }}>
+            おすそわけリンク（仮）
+          </h1>
+          <p className="text-xs mt-0.5" style={{ color: COLORS.inkSoft }}>
+            {isOwnMode ? 'あなたのリスト' : '友達からのおすそわけ'}
+          </p>
         </div>
 
-        {/* Share bar */}
-        <div className="max-w-md mx-auto px-4 pb-3 relative">
-          <button
-            onClick={() => setShareMenuOpen((v) => !v)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold font-kaku text-sm active:scale-[0.98] transition-transform"
-            style={{ backgroundColor: COLORS.accent, color: '#fff' }}
-          >
-            <Share2 size={16} />
-            共有する
-          </button>
+        {isOwnMode ? (
+          <div className="max-w-md mx-auto px-4 pb-3 relative">
+            <button
+              onClick={() => setShareMenuOpen((v) => !v)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold font-kaku text-sm active:scale-[0.98] transition-transform"
+              style={{ backgroundColor: COLORS.accent, color: '#fff' }}
+            >
+              <Share2 size={16} />
+              共有する
+            </button>
 
-          {shareMenuOpen && (
-            <>
-              <div className="fixed inset-0 z-20" onClick={() => setShareMenuOpen(false)} />
-              <div
-                className="absolute left-4 right-4 top-full mt-2 rounded-xl overflow-hidden shadow-lg z-30"
-                style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}` }}
-              >
-                <a
-                  href={lineShareUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setShareMenuOpen(false)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold"
-                  style={{ color: COLORS.ink, borderBottom: `1px solid ${COLORS.border}` }}
+            {shareMenuOpen && (
+              <React.Fragment>
+                <div className="fixed inset-0 z-20" onClick={() => setShareMenuOpen(false)} />
+                <div
+                  className="absolute left-4 right-4 top-full mt-2 rounded-xl overflow-hidden shadow-lg z-30"
+                  style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}` }}
                 >
-                  <MessageCircle size={17} color={COLORS.line} />
-                  LINEで送る
-                </a>
-                <button
-                  onClick={() => { copyLink(); setShareMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold"
-                  style={{ color: COLORS.ink }}
-                >
-                  <Link2 size={17} color={COLORS.indigo} />
-                  リンクをコピー
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+                  <a
+                    href={lineShareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setShareMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold"
+                    style={{ color: COLORS.ink, borderBottom: `1px solid ${COLORS.border}` }}
+                  >
+                    <MessageCircle size={17} color={COLORS.line} />
+                    LINEで送る
+                  </a>
+                  <button
+                    onClick={() => { copyLink(); setShareMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold"
+                    style={{ color: COLORS.ink }}
+                  >
+                    <Link2 size={17} color={COLORS.indigo} />
+                    リンクをコピー
+                  </button>
+                </div>
+              </React.Fragment>
+            )}
+          </div>
+        ) : (
+          <div className="max-w-md mx-auto px-4 pb-3">
+            <a
+              href={window.location.origin + window.location.pathname}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold font-kaku text-sm active:scale-[0.98] transition-transform"
+              style={{ backgroundColor: COLORS.moss, color: '#fff' }}
+            >
+              あなたも譲れるものはありませんか？
+            </a>
+          </div>
+        )}
       </header>
 
-      {/* Catalog grid */}
       <main className="max-w-md mx-auto px-4 pt-4 pb-28">
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="font-maru font-bold text-sm">アイテム一覧</h2>
@@ -375,7 +344,9 @@ export default function App() {
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-16 text-sm" style={{ color: COLORS.inkSoft }}>
-            まだアイテムがありません。右下の＋から出品してみましょう
+            {isOwnMode
+              ? 'まだアイテムがありません。右下の＋から出品してみましょう'
+              : 'まだアイテムがありません'}
           </div>
         ) : (
           <div className="rounded-xl overflow-hidden divide-y" style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}`, borderColor: COLORS.border }}>
@@ -420,17 +391,17 @@ export default function App() {
         )}
       </main>
 
-      {/* Floating add button */}
-      <button
-        onClick={() => setFormOpen(true)}
-        className="fixed bottom-6 right-5 z-30 flex items-center justify-center w-14 h-14 rounded-full shadow-lg active:scale-95 transition-transform"
-        style={{ backgroundColor: COLORS.accent, color: '#fff' }}
-        aria-label="出品する"
-      >
-        <Plus size={26} />
-      </button>
+      {isOwnMode && (
+        <button
+          onClick={() => setFormOpen(true)}
+          className="fixed bottom-6 right-5 z-30 flex items-center justify-center w-14 h-14 rounded-full shadow-lg active:scale-95 transition-transform"
+          style={{ backgroundColor: COLORS.accent, color: '#fff' }}
+          aria-label="出品する"
+        >
+          <Plus size={26} />
+        </button>
+      )}
 
-      {/* Full-screen listing form */}
       {formOpen && (
         <div className="fixed inset-0 z-40" style={{ backgroundColor: COLORS.bg }}>
           <div className="max-w-md mx-auto h-full flex flex-col">
@@ -459,7 +430,7 @@ export default function App() {
                   {compressing ? (
                     <div className="flex flex-col items-center gap-1.5 py-8" style={{ color: COLORS.inkSoft }}>
                       <Loader2 size={22} className="animate-spin" />
-                      <span className="text-xs">圧縮・リサイズ中…</span>
+                      <span className="text-xs">処理中…</span>
                     </div>
                   ) : preview ? (
                     <img src={preview} alt="preview" className="w-full max-h-64 object-cover" />
@@ -542,7 +513,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Full-screen item detail */}
       {viewItem && (
         <div className="fixed inset-0 z-40" style={{ backgroundColor: COLORS.bg }}>
           <div className="max-w-md mx-auto h-full flex flex-col">
@@ -581,41 +551,41 @@ export default function App() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.ink }}>{viewItem.description}</p>
                 )}
 
-                {/* Owner menu */}
-                <div className="mt-6 pt-4 border-t" style={{ borderColor: COLORS.border }}>
-                  <button
-                    onClick={() => setOwnerMenuOpen((v) => !v)}
-                    className="text-xs font-bold"
-                    style={{ color: COLORS.inkSoft }}
-                  >
-                    出品者メニュー {ownerMenuOpen ? '▲' : '▼'}
-                  </button>
-                  {ownerMenuOpen && (
-                    <div className="flex gap-2 mt-2.5">
-                      {viewItem.status !== 'done' && (
+                {isOwnMode && (
+                  <div className="mt-6 pt-4 border-t" style={{ borderColor: COLORS.border }}>
+                    <button
+                      onClick={() => setOwnerMenuOpen((v) => !v)}
+                      className="text-xs font-bold"
+                      style={{ color: COLORS.inkSoft }}
+                    >
+                      出品者メニュー {ownerMenuOpen ? '▲' : '▼'}
+                    </button>
+                    {ownerMenuOpen && (
+                      <div className="flex gap-2 mt-2.5">
+                        {viewItem.status !== 'done' && (
+                          <button
+                            onClick={() => markDone(viewItem)}
+                            className="flex-1 py-2 rounded-lg text-xs font-bold"
+                            style={{ border: `1px solid ${COLORS.moss}`, color: COLORS.moss }}
+                          >
+                            お譲り確定にする
+                          </button>
+                        )}
                         <button
-                          onClick={() => markDone(viewItem)}
-                          className="flex-1 py-2 rounded-lg text-xs font-bold"
-                          style={{ border: `1px solid ${COLORS.moss}`, color: COLORS.moss }}
+                          onClick={() => requestDelete(viewItem)}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold"
+                          style={{ border: `1px solid ${COLORS.border}`, color: COLORS.accentDeep }}
                         >
-                          お譲り確定にする
+                          <Trash2 size={13} />
+                          削除
                         </button>
-                      )}
-                      <button
-                        onClick={() => requestDelete(viewItem)}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold"
-                        style={{ border: `1px solid ${COLORS.border}`, color: COLORS.accentDeep }}
-                      >
-                        <Trash2 size={13} />
-                        削除
-                      </button>
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Sticky bottom CTA */}
             <div className="px-4 py-3 border-t" style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}>
               {viewItem.status === 'open' && (
                 <button
@@ -645,7 +615,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Want / claim bottom sheet */}
       {modalItem && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(43,38,32,0.5)' }} onClick={() => setModalItem(null)} />
@@ -726,7 +695,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Delete confirm modal */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(43,38,32,0.5)' }} onClick={() => setConfirmDelete(null)} />
