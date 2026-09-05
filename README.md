@@ -35,3 +35,7 @@ gh repo create osusowake-link --public --source=. --push
 - [ ] 画像を実際にアップロード・保存できるようにする（現状はbase64で保存しているので、件数が増えると重くなります）
 - [ ] `index.html` のOGP画像（`/ogp-image.png`）を実際の画像に差し替える
 - [ ] 簡易的なアクセス制限（合言葉ゲートなど）を入れる
+
+## supabase
+sb_publishable_lrKChqZHlVys-kudf2SpaA_mf0kGmCy
+https://imdwjrtctgjlhvsddaqs.supabase.co
