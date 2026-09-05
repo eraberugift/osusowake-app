@@ -4,7 +4,7 @@ import {
   CheckCircle2, Loader2, Plus, Users, ChevronLeft,
   AlertTriangle, Clock, Link2, Share2
 } from 'lucide-react';
-import { storage } from './storage.js';
+import { storage, uploadItemImage } from './storage.js';
 
 const COLORS = {
   bg: '#FAF8F3',
@@ -210,26 +210,40 @@ export default function App() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  const submitItem = () => {
-    if (!name.trim()) {
-      showToast('品名を入力してください');
+  const submitItem = async () => {
+  if (!name.trim()) {
+    showToast('品名を入力してください');
+    return;
+  }
+
+  let imageUrl = null;
+  if (preview) {
+    try {
+      setCompressing(true);
+      imageUrl = await uploadItemImage(preview);
+    } catch (e) {
+      showToast('画像のアップロードに失敗しました');
+      setCompressing(false);
       return;
     }
-    const newItem = {
-      id: `item-${Date.now()}`,
-      name: name.trim(),
-      condition,
-      description: description.trim(),
-      image: preview,
-      status: 'open',
-      claimerName: '',
-      createdAt: Date.now(),
-    };
-    persist([newItem, ...items]);
-    resetForm();
-    setFormOpen(false);
-    showToast('リストに登録しました！');
+    setCompressing(false);
+  }
+
+  const newItem = {
+    id: `item-${Date.now()}`,
+    name: name.trim(),
+    condition,
+    description: description.trim(),
+    image: imageUrl,
+    status: 'open',
+    claimerName: '',
+    createdAt: Date.now(),
   };
+  persist([newItem, ...items]);
+  resetForm();
+  setFormOpen(false);
+  showToast('リストに登録しました！');
+};
 
   const shareText = `${COMMUNITY_NAME}の「おすそわけリンク」を見てね`;
   const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;

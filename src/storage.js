@@ -38,3 +38,19 @@ export const storage = {
     return { key, deleted: true };
   },
 };
+
+export async function uploadItemImage(dataUrl) {
+  // canvasで作った圧縮済みのdataURL画像を、実際のファイルに変換してアップロードする
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+
+  const { error } = await supabase.storage
+    .from('item-images')
+    .upload(fileName, blob, { contentType: 'image/jpeg', upsert: false });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from('item-images').getPublicUrl(fileName);
+  return data.publicUrl;
+}
