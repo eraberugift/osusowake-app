@@ -128,12 +128,20 @@ export async function loginOrRegisterWithEmail(email, currentOwnerId) {
 
   if (findError) throw findError;
 
-  if (existing) {
-    // すでに登録済みのメールアドレス → そのowner_idを返す（復元）
+  if (existing && existing.owner_id !== currentOwnerId) {
+    // すでに別の端末で登録済みのメールアドレス
+    // → 今の端末にあるアイテムを、登録済みのリストへお引越しさせる（統合）
+    const { error: mergeError } = await supabase
+      .from('items')
+      .update({ owner_id: existing.owner_id })
+      .eq('owner_id', currentOwnerId);
+
+    if (mergeError) throw mergeError;
+
     return existing.owner_id;
   }
 
-  // 未登録 → 今のowner_idと紐付けて新規登録
+  // 未登録のメールアドレス → 今のowner_idと紐付けて新規登録
   const { error: upsertError } = await supabase
     .from('profiles')
     .upsert({ owner_id: currentOwnerId, notify_email: normalized, updated_at: new Date().toISOString() });

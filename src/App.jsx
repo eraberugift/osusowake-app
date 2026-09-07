@@ -115,9 +115,11 @@ export default function App() {
   const [claimerInput, setClaimerInput] = useState('');
   const [modalStage, setModalStage] = useState('name');
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [showExample, setShowExample] = useState(false);
 
   const toastTimer = useRef(null);
   const fileRef = useRef(null);
+  const shareMenuRef = useRef(null);
 
   const isOwnMode = myId && viewOwnerId && myId === viewOwnerId;
 
@@ -158,6 +160,21 @@ export default function App() {
     })();
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    if (!shareMenuOpen) return;
+    const handleOutsideClick = (e) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(e.target)) {
+        setShareMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [shareMenuOpen]);
 
   const showToast = (msg, ms = 2600) => {
     setToast(msg);
@@ -426,21 +443,20 @@ export default function App() {
         )}
 
         {isOwnMode ? (
-          <div className="max-w-md mx-auto px-4 pb-3 relative">
-            <button
-              onClick={() => setShareMenuOpen((v) => !v)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold font-kaku text-sm active:scale-[0.98] transition-transform"
-              style={{ backgroundColor: COLORS.accent, color: '#fff' }}
-            >
-              <Share2 size={16} />
-              共有する
-            </button>
+          items.length > 0 && (
+            <div className="max-w-md mx-auto px-4 pb-3 relative" ref={shareMenuRef}>
+              <button
+                onClick={() => setShareMenuOpen((v) => !v)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold font-kaku text-sm active:scale-[0.98] transition-transform"
+                style={{ backgroundColor: COLORS.accent, color: '#fff' }}
+              >
+                <Share2 size={16} />
+                共有する
+              </button>
 
-            {shareMenuOpen && (
-              <React.Fragment>
-                <div className="fixed inset-0 z-20" onClick={() => setShareMenuOpen(false)} />
+              {shareMenuOpen && (
                 <div
-                  className="absolute left-4 right-4 top-full mt-2 rounded-xl overflow-hidden shadow-lg z-30"
+                  className="absolute left-0 right-0 top-full mt-2 rounded-xl overflow-hidden shadow-lg z-30"
                   style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}` }}
                 >
                   <a
@@ -463,9 +479,9 @@ export default function App() {
                     リンクをコピー
                   </button>
                 </div>
-              </React.Fragment>
-            )}
-          </div>
+              )}
+            </div>
+          )
         ) : (
           <div className="max-w-md mx-auto px-4 pb-3">
             <a
@@ -554,7 +570,14 @@ export default function App() {
           <div className="max-w-md mx-auto h-full flex flex-col">
             <div className="sticky top-0 flex items-center gap-3 px-4 py-3 border-b" style={{ backgroundColor: COLORS.bg, borderColor: COLORS.border }}>
               <button onClick={() => { setFormOpen(false); resetForm(); }}><X size={20} /></button>
-              <h2 className="font-maru font-bold text-base">商品の出品</h2>
+              <h2 className="font-maru font-bold text-base flex-1">商品の出品</h2>
+              <button
+                onClick={() => setShowExample(true)}
+                className="text-xs underline flex-shrink-0"
+                style={{ color: COLORS.indigo }}
+              >
+                見本を見る
+              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
@@ -878,6 +901,60 @@ export default function App() {
                 削除する
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showExample && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0" style={{ backgroundColor: 'rgba(43,38,32,0.5)' }} onClick={() => setShowExample(false)} />
+          <div className="relative w-full max-w-md rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto" style={{ backgroundColor: COLORS.card }}>
+            <button onClick={() => setShowExample(false)} className="absolute top-4 right-4" style={{ color: COLORS.inkSoft }}>
+              <X size={20} />
+            </button>
+
+            <h3 className="font-maru font-bold text-base mb-4 pr-6">出品の見本</h3>
+
+            <div className="space-y-3 mb-5">
+              <div className="rounded-xl p-3" style={{ backgroundColor: '#FCFBF8', border: `1px solid ${COLORS.border}` }}>
+                <p className="text-xs font-bold mb-1" style={{ color: COLORS.accentDeep }}>品名</p>
+                <p className="text-sm font-bold mb-2">ワンピース（Mサイズ）</p>
+                <p className="text-xs font-bold mb-1" style={{ color: COLORS.accentDeep }}>状態</p>
+                <p className="text-sm mb-2">目立つ傷なし</p>
+                <p className="text-xs font-bold mb-1" style={{ color: COLORS.accentDeep }}>詳細説明・注意点</p>
+                <p className="text-sm leading-relaxed" style={{ color: COLORS.ink }}>
+                  1シーズンだけ着用しました。首元に小さな毛玉がありますが、それ以外は綺麗な状態です。クリーニング済みです。手渡しでのお引き渡しを希望します。
+                </p>
+              </div>
+
+              <div className="rounded-xl p-3" style={{ backgroundColor: '#FCFBF8', border: `1px solid ${COLORS.border}` }}>
+                <p className="text-xs font-bold mb-1" style={{ color: COLORS.accentDeep }}>品名</p>
+                <p className="text-sm font-bold mb-2">キッズ自転車 16インチ</p>
+                <p className="text-xs font-bold mb-1" style={{ color: COLORS.accentDeep }}>状態</p>
+                <p className="text-sm mb-2">使用感あり</p>
+                <p className="text-xs font-bold mb-1" style={{ color: COLORS.accentDeep }}>詳細説明・注意点</p>
+                <p className="text-sm leading-relaxed" style={{ color: COLORS.ink }}>
+                  補助輪付きです。あちこちに小さな傷がありますが、走行に問題はありません。空気入れも一緒にお渡しします。
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl p-3 mb-4" style={{ backgroundColor: COLORS.mossSoft }}>
+              <p className="text-xs font-bold mb-2" style={{ color: COLORS.moss }}>書き方のコツ</p>
+              <ul className="text-xs space-y-1 leading-relaxed" style={{ color: COLORS.moss }}>
+                <li>・傷や汚れは、正直に書いておくと相手も安心できます</li>
+                <li>・写真は明るい場所で撮ると、状態が伝わりやすくなります</li>
+                <li>・受け渡し方法の希望（手渡し・郵送など）も書いておくと親切です</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => setShowExample(false)}
+              className="w-full py-3 rounded-xl font-bold text-sm"
+              style={{ backgroundColor: COLORS.accent, color: '#fff' }}
+            >
+              閉じて出品に戻る
+            </button>
           </div>
         </div>
       )}
