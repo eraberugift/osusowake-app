@@ -373,6 +373,10 @@ export default function App() {
         .font-maru { font-family: 'Zen Maru Gothic', sans-serif; }
         .font-kaku { font-family: 'Zen Kaku Gothic New', sans-serif; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        html { overflow-y: scroll; scrollbar-gutter: stable; }
+        @media (max-width: 767px) {
+          input, textarea, select { font-size: 16px !important; }
+        }
       `}</style>
 
       <header className="sticky top-0 z-30 border-b backdrop-blur" style={{ backgroundColor: 'rgba(250,248,243,0.94)', borderColor: COLORS.border }}>
@@ -414,6 +418,8 @@ export default function App() {
               <div className="flex gap-2">
                 <input
                   type="email"
+                  name="email"
+                  autoComplete="email"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="メールアドレス（通知・復元用・任意）"
@@ -566,7 +572,7 @@ export default function App() {
       )}
 
       {formOpen && (
-        <div className="fixed inset-0 z-40" style={{ backgroundColor: COLORS.bg }}>
+        <div className="fixed inset-0 z-40" style={{ backgroundColor: COLORS.bg, height: '100dvh' }}>
           <div className="max-w-md mx-auto h-full flex flex-col">
             <div className="sticky top-0 flex items-center gap-3 px-4 py-3 border-b" style={{ backgroundColor: COLORS.bg, borderColor: COLORS.border }}>
               <button onClick={() => { setFormOpen(false); resetForm(); }}><X size={20} /></button>
@@ -684,7 +690,7 @@ export default function App() {
       )}
 
       {viewItem && (
-        <div className="fixed inset-0 z-40" style={{ backgroundColor: COLORS.bg }}>
+        <div className="fixed inset-0 z-40" style={{ backgroundColor: COLORS.bg, height: '100dvh' }}>
           <div className="max-w-md mx-auto h-full flex flex-col">
             <div className="sticky top-0 flex items-center gap-3 px-4 py-3 border-b z-10" style={{ backgroundColor: 'rgba(250,248,243,0.95)', borderColor: COLORS.border }}>
               <button onClick={() => { setViewItem(null); setOwnerMenuOpen(false); }}><ChevronLeft size={22} /></button>
