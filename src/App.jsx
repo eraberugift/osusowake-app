@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Camera, Gift, Package, MessageCircle, X, Trash2,
   CheckCircle2, Loader2, Plus, ChevronLeft,
-  AlertTriangle, Clock, Link2, Share2
+  AlertTriangle, Clock, Link2, Share2, Mail
 } from 'lucide-react';
 import {
   getCurrentUserId, fetchItems, insertItem,
   updateItemFields, deleteItemRow, uploadItemImage,
-  signInWithGoogle, onAuthStateChange, isAnonymousUser, supabase
+  loginOrRegisterWithEmail, getNotifyEmail, getMyId, setMyId,
+  updateNotifyEmail, logout
 } from './storage.js';
 
 const COLORS = {
@@ -87,11 +88,16 @@ function Toast({ message }) {
 }
 
 export default function App() {
-  const [currentUserId, setCurrentUserId] = useState(null);
+  const [myId, setMyIdState] = useState(null);
   const [viewOwnerId, setViewOwnerId] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [notifyEmail, setNotifyEmail] = useState(null);
+  const [emailInput, setEmailInput] = useState('');
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const [formOpen, setFormOpen] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
@@ -113,7 +119,7 @@ export default function App() {
   const toastTimer = useRef(null);
   const fileRef = useRef(null);
 
-  const isOwnMode = currentUserId && viewOwnerId && currentUserId === viewOwnerId;
+  const isOwnMode = myId && viewOwnerId && myId === viewOwnerId;
 
   useEffect(() => {
     let mounted = true;
@@ -121,21 +127,29 @@ export default function App() {
       try {
         const uid = await getCurrentUserId();
         if (!mounted) return;
-        setCurrentUserId(uid);
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (mounted) setCurrentUser(user);
-
-        onAuthStateChange((u) => setCurrentUser(u));
+        let id = getMyId();
+        if (!id) {
+          id = uid;
+          setMyId(id);
+        }
+        setMyIdState(id);
 
         const params = new URLSearchParams(window.location.search);
         const u = params.get('u');
-        const owner = u || uid;
+        const owner = u || id;
         setViewOwnerId(owner);
 
         const list = await fetchItems(owner);
         if (!mounted) return;
         setItems(list);
+
+        if (owner === id) {
+          try {
+            const email = await getNotifyEmail(id);
+            if (mounted) setNotifyEmail(email);
+          } catch (_) {}
+        }
       } catch (e) {
         showToast('読み込みに失敗しました');
       } finally {
@@ -149,6 +163,75 @@ export default function App() {
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(''), ms);
+  };
+
+  const handleEmailSubmit = async () => {
+    if (!emailInput.trim()) {
+      showToast('メールアドレスを入力してください');
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      const resolvedId = await loginOrRegisterWithEmail(emailInput.trim(), myId);
+      if (resolvedId !== myId) {
+        setMyId(resolvedId);
+        setMyIdState(resolvedId);
+        setViewOwnerId(resolvedId);
+        const list = await fetchItems(resolvedId);
+        setItems(list);
+        showToast('以前のリストを復元しました！');
+      } else {
+        showToast('メールアドレスを登録しました！');
+      }
+      setNotifyEmail(emailInput.trim().toLowerCase());
+      setEmailInput('');
+    } catch (e) {
+      showToast('登録に失敗しました');
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const handleEmailUpdate = async () => {
+    if (!emailInput.trim()) {
+      showToast('メールアドレスを入力してください');
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      await updateNotifyEmail(myId, emailInput.trim());
+      setNotifyEmail(emailInput.trim().toLowerCase());
+      setEditingEmail(false);
+      setEmailInput('');
+      showToast('メールアドレスを更新しました');
+    } catch (e) {
+      if (e.message === 'EMAIL_TAKEN') {
+        showToast('そのメールアドレスは既に使われています');
+      } else {
+        showToast('更新に失敗しました');
+      }
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const handleLogoutConfirm = async () => {
+    try {
+      const newId = await logout();
+      setMyId(newId);
+      setMyIdState(newId);
+      setViewOwnerId(newId);
+      setNotifyEmail(null);
+      setEmailInput('');
+      setEditingEmail(false);
+      const list = await fetchItems(newId);
+      setItems(list);
+      showToast('ログアウトしました');
+    } catch (e) {
+      showToast('ログアウトに失敗しました');
+    } finally {
+      setLogoutConfirmOpen(false);
+    }
   };
 
   const handleFile = async (e) => {
@@ -188,7 +271,7 @@ export default function App() {
     }
 
     try {
-      const newItem = await insertItem(currentUserId, {
+      const newItem = await insertItem(myId, {
         name: name.trim(),
         condition,
         description: description.trim(),
@@ -285,15 +368,60 @@ export default function App() {
           </p>
         </div>
 
-        {isOwnMode && isAnonymousUser(currentUser) && (
+        {isOwnMode && (
           <div className="max-w-md mx-auto px-4 pb-3">
-            <button
-              onClick={signInWithGoogle}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold"
-              style={{ backgroundColor: COLORS.indigoSoft, color: COLORS.indigo }}
-            >
-              💡 Googleでログインして、リストを保存・通知を受け取る
-            </button>
+            {notifyEmail && !editingEmail ? (
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <p className="flex items-center gap-1.5 text-xs" style={{ color: COLORS.inkSoft }}>
+                  <Mail size={13} />
+                  通知先：{notifyEmail}
+                </p>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <button
+                    onClick={() => { setEditingEmail(true); setEmailInput(notifyEmail); }}
+                    className="text-[11px] underline"
+                    style={{ color: COLORS.indigo }}
+                  >
+                    変更する
+                  </button>
+                  <button
+                    onClick={() => setLogoutConfirmOpen(true)}
+                    className="text-[11px] underline"
+                    style={{ color: COLORS.inkSoft }}
+                  >
+                    ログアウト
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="メールアドレス（通知・復元用・任意）"
+                  className="flex-1 px-3 py-2 rounded-lg text-xs outline-none"
+                  style={{ border: `1px solid ${COLORS.border}`, backgroundColor: '#FCFBF8' }}
+                />
+                <button
+                  onClick={editingEmail ? handleEmailUpdate : handleEmailSubmit}
+                  disabled={savingEmail}
+                  className="px-4 py-2 rounded-lg text-xs font-bold flex-shrink-0"
+                  style={{ backgroundColor: COLORS.indigoSoft, color: COLORS.indigo }}
+                >
+                  {savingEmail ? '...' : editingEmail ? '保存' : '登録'}
+                </button>
+                {editingEmail && (
+                  <button
+                    onClick={() => { setEditingEmail(false); setEmailInput(''); }}
+                    className="px-2 text-xs flex-shrink-0"
+                    style={{ color: COLORS.inkSoft }}
+                  >
+                    キャンセル
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -748,6 +876,34 @@ export default function App() {
                 style={{ backgroundColor: COLORS.accent, color: '#fff' }}
               >
                 削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {logoutConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0" style={{ backgroundColor: 'rgba(43,38,32,0.5)' }} onClick={() => setLogoutConfirmOpen(false)} />
+          <div className="relative w-full max-w-xs rounded-2xl p-5" style={{ backgroundColor: COLORS.card }}>
+            <h3 className="font-bold text-sm mb-2">ログアウトしますか？</h3>
+            <p className="text-xs mb-4" style={{ color: COLORS.inkSoft }}>
+              もう一度このリストを見るには、登録したメールアドレスの入力が必要になります。
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setLogoutConfirmOpen(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                style={{ border: `1px solid ${COLORS.border}`, color: COLORS.inkSoft }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleLogoutConfirm}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+                style={{ backgroundColor: COLORS.accent, color: '#fff' }}
+              >
+                ログアウトする
               </button>
             </div>
           </div>
