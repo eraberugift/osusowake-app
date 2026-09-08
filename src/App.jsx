@@ -423,7 +423,7 @@ export default function App() {
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="メールアドレス（通知・復元用・任意）"
-                  className="flex-1 px-3 py-2 rounded-lg text-xs outline-none"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg text-xs outline-none"
                   style={{ border: `1px solid ${COLORS.border}`, backgroundColor: '#FCFBF8' }}
                 />
                 <button
