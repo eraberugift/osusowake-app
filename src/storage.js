@@ -5,8 +5,6 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 今のブラウザ専用の「あなたのID」を取得する。
-// まだ一度もアクセスしたことがなければ、裏側で自動的に匿名アカウントが作られる（画面には何も表示されない）
 let authPromise = null;
 
 export function getCurrentUserId() {
@@ -24,9 +22,102 @@ export function getCurrentUserId() {
   return authPromise;
 }
 
+// ------- リスト関連 -------
+
+function rowToList(row) {
+  return {
+    id: row.id,
+    creatorId: row.creator_id,
+    title: row.title,
+    deadline: row.deadline,
+    createdAt: new Date(row.created_at).getTime(),
+  };
+}
+
+export async function createList(creatorId, { title, deadline }) {
+  const { data, error } = await supabase
+    .from('lists')
+    .insert({ creator_id: creatorId, title: title || 'ゆずりリスト', deadline: deadline || null })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return rowToList(data);
+}
+
+export async function fetchList(listId) {
+  const { data, error } = await supabase
+    .from('lists')
+    .select('*')
+    .eq('id', listId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ? rowToList(data) : null;
+}
+
+export async function updateListTitle(listId, title) {
+  const { error } = await supabase
+    .from('lists')
+    .update({ title: title || 'ゆずりリスト' })
+    .eq('id', listId);
+
+  if (error) throw error;
+}
+
+export async function updateListDeadline(listId, deadline) {
+  const { error } = await supabase
+    .from('lists')
+    .update({ deadline: deadline || null })
+    .eq('id', listId);
+
+  if (error) throw error;
+}
+
+const MY_LISTS_KEY = 'osusowake-my-lists';
+
+export function getMyListIds() {
+  const raw = localStorage.getItem(MY_LISTS_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+export function addMyListId(listId) {
+  const ids = getMyListIds();
+  if (!ids.includes(listId)) {
+    ids.unshift(listId);
+    localStorage.setItem(MY_LISTS_KEY, JSON.stringify(ids));
+  }
+}
+
+export async function fetchListsByIds(ids) {
+  if (!ids || ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from('lists')
+    .select('*')
+    .in('id', ids);
+
+  if (error) throw error;
+  const rows = data.map(rowToList);
+  return ids.map((id) => rows.find((r) => r.id === id)).filter(Boolean);
+}
+
+export async function fetchListsByCreator(creatorId) {
+  const { data, error } = await supabase
+    .from('lists')
+    .select('*')
+    .eq('creator_id', creatorId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data.map(rowToList);
+}
+
+// ------- アイテム関連 -------
+
 function rowToItem(row) {
   return {
     id: row.id,
+    listId: row.list_id,
     name: row.name,
     condition: row.condition,
     description: row.description,
@@ -38,21 +129,23 @@ function rowToItem(row) {
   };
 }
 
-export async function fetchItems(ownerId) {
+export async function fetchItemsByList(listId) {
   const { data, error } = await supabase
     .from('items')
     .select('*')
-    .eq('owner_id', ownerId)
+    .eq('list_id', listId)
     .order('created_at', { ascending: false });
+
   if (error) throw error;
   return data.map(rowToItem);
 }
 
-export async function insertItem(ownerId, item) {
+export async function insertItem(listId, creatorId, item) {
   const { data, error } = await supabase
     .from('items')
     .insert({
-      owner_id: ownerId,
+      list_id: listId,
+      owner_id: creatorId,
       name: item.name,
       condition: item.condition,
       description: item.description,
@@ -61,6 +154,7 @@ export async function insertItem(ownerId, item) {
     })
     .select()
     .single();
+
   if (error) throw error;
   return rowToItem(data);
 }
@@ -93,12 +187,12 @@ export async function uploadItemImage(dataUrl) {
   return data.publicUrl;
 }
 
+// ------- Googleログイン関連（維持、未使用） -------
+
 export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      redirectTo: window.location.href,
-    },
+    options: { redirectTo: window.location.href },
   });
   if (error) throw error;
 }
@@ -114,9 +208,8 @@ export function isAnonymousUser(user) {
   return !!user?.is_anonymous;
 }
 
-// メールアドレスで「復元」または「新規登録」を行う
-// 既にそのメールアドレスが登録されていれば、そのowner_idを返す（＝復元）
-// 登録されていなければ、今のowner_idとメールアドレスを紐付けて保存する（＝新規登録）
+// ------- メールアドレスによる通知登録・復元・統合 -------
+
 export async function loginOrRegisterWithEmail(email, currentOwnerId) {
   const normalized = email.trim().toLowerCase();
 
@@ -129,19 +222,24 @@ export async function loginOrRegisterWithEmail(email, currentOwnerId) {
   if (findError) throw findError;
 
   if (existing && existing.owner_id !== currentOwnerId) {
-    // すでに別の端末で登録済みのメールアドレス
-    // → 今の端末にあるアイテムを、登録済みのリストへお引越しさせる（統合）
-    const { error: mergeError } = await supabase
+    // アイテムの持ち主だけでなく、リストの持ち主情報も一緒に付け替える
+    const { error: mergeItemsError } = await supabase
       .from('items')
       .update({ owner_id: existing.owner_id })
       .eq('owner_id', currentOwnerId);
 
-    if (mergeError) throw mergeError;
+    if (mergeItemsError) throw mergeItemsError;
+
+    const { error: mergeListsError } = await supabase
+      .from('lists')
+      .update({ creator_id: existing.owner_id })
+      .eq('creator_id', currentOwnerId);
+
+    if (mergeListsError) throw mergeListsError;
 
     return existing.owner_id;
   }
 
-  // 未登録のメールアドレス → 今のowner_idと紐付けて新規登録
   const { error: upsertError } = await supabase
     .from('profiles')
     .upsert({ owner_id: currentOwnerId, notify_email: normalized, updated_at: new Date().toISOString() });
@@ -159,18 +257,6 @@ export async function getNotifyEmail(ownerId) {
 
   if (error) throw error;
   return data?.notify_email || null;
-}
-
-// この端末で「あなた」として扱うIDを覚えておくための仕組み。
-// メールアドレスでの復元が行われた場合、ここが書き換わる。
-const MY_ID_KEY = 'osusowake-my-id';
-
-export function getMyId() {
-  return localStorage.getItem(MY_ID_KEY);
-}
-
-export function setMyId(id) {
-  localStorage.setItem(MY_ID_KEY, id);
 }
 
 export async function updateNotifyEmail(ownerId, newEmail) {
@@ -194,6 +280,22 @@ export async function updateNotifyEmail(ownerId, newEmail) {
   if (error) throw error;
 }
 
+// ------- この端末で「あなた」として扱うIDを覚えておく仕組み -------
+
+const MY_ID_KEY = 'osusowake-my-id';
+
+export function getMyId() {
+  return localStorage.getItem(MY_ID_KEY);
+}
+
+export function setMyId(id) {
+  localStorage.setItem(MY_ID_KEY, id);
+}
+
+export function clearMyId() {
+  localStorage.removeItem(MY_ID_KEY);
+}
+
 export async function logout() {
   await supabase.auth.signOut();
   clearMyId();
@@ -202,6 +304,21 @@ export async function logout() {
   return data.user.id;
 }
 
-export function clearMyId() {
-  localStorage.removeItem(MY_ID_KEY);
+// ------- メールアドレスの入力履歴（iPhone Safari対策の自前補完） -------
+
+const EMAIL_HISTORY_KEY = 'osusowake-email-history';
+
+export function getEmailHistory() {
+  const raw = localStorage.getItem(EMAIL_HISTORY_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+export function addEmailHistory(email) {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return;
+  let history = getEmailHistory();
+  history = history.filter((e) => e !== normalized);
+  history.unshift(normalized);
+  history = history.slice(0, 5);
+  localStorage.setItem(EMAIL_HISTORY_KEY, JSON.stringify(history));
 }
