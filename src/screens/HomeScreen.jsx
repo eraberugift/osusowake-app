@@ -6,9 +6,18 @@ import { useApp } from '../context/AppContext.jsx';
 import GlobalStyle from '../components/GlobalStyle.jsx';
 import Toast from '../components/Toast.jsx';
 import ListLinkRow from '../components/ListLinkRow.jsx';
+import { FeaturesSection, ScenesSection, StepsSection } from '../components/LandingSections.jsx';
 import CreateListModal from '../modals/CreateListModal.jsx';
 import EmailLoginModal from '../modals/EmailLoginModal.jsx';
 import LogoutConfirmModal from '../modals/LogoutConfirmModal.jsx';
+
+// リンク先ができたら href を差し替えてください
+const FOOTER_LINKS = [
+  { label: 'よくある質問', href: '#' },
+  { label: 'お問い合わせ', href: '#' },
+  { label: 'プライバシーポリシー', href: '#' },
+  { label: '利用規約', href: '#' },
+];
 
 // トップ画面（リスト未選択時）
 export default function HomeScreen() {
@@ -52,51 +61,87 @@ export default function HomeScreen() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 pb-16 pt-6 text-center">
-        <img src="/squirrels-logo.png" alt="ゆずリス" className="w-48 mx-auto mb-2" />
-        <h1 className="font-maru font-bold text-4xl leading-tight mb-4" style={{ color: COLORS.accent }}>
-          もう、譲るタイミングで<br />迷わない。
-        </h1>
-        <p className="text-base leading-relaxed mb-8" style={{ color: COLORS.inkSoft }}>
-          譲りたいものを入力するだけで、<br />共有リンクができます
-        </p>
-        <button
-          onClick={() => setFormOpen(true)}
-          className="w-full py-4 rounded-full font-bold text-lg shadow-sm active:scale-[0.98] transition-transform mb-3"
-          style={{ backgroundColor: COLORS.accent, color: '#fff' }}
-        >
-          はじめる
-        </button>
+      <main className="max-w-md mx-auto px-4 pt-10">
+        {/* ---- ヒーロー ---- */}
+        <section className="text-center pb-16">
+          <h1 className="font-maru font-extrabold text-4xl leading-tight mb-6" style={{ color: COLORS.accent }}>
+            誰か欲しい人<br />いるかな？<br />を簡単に。
+          </h1>
+          <img src="/squirrels-logo.png" alt="ゆずリス" className="w-56 mx-auto mb-6" />
+          <p className="text-[15px] leading-relaxed mb-8" style={{ color: COLORS.ink, textWrap: 'balance' }}>
+            ゆずリスはURLを知り合いに送るだけで、まだ使えるものを欲しい人が分かるサービスです。
+          </p>
+          <button
+            onClick={() => setFormOpen(true)}
+            className="w-full py-4 rounded-full font-bold text-lg shadow-sm active:scale-[0.98] transition-transform mb-3"
+            style={{ backgroundColor: COLORS.accent, color: '#fff' }}
+          >
+            はじめる
+          </button>
 
-        {myLists.length > 0 && (
-          <div className="text-left">
-            <button
-              onClick={() => setShowMyLists((v) => !v)}
-              className="text-xs underline mb-2 block mx-auto w-fit text-center"
-              style={{ color: COLORS.indigo }}
-            >
-              あなたが作ったリストを見る {showMyLists ? '▲' : '▼'}
-            </button>
+          {myLists.length > 0 && (
+            <div className="text-left">
+              <button
+                onClick={() => setShowMyLists((v) => !v)}
+                className="text-xs underline mb-2 block mx-auto w-fit text-center"
+                style={{ color: COLORS.indigo }}
+              >
+                あなたが作ったリストを見る {showMyLists ? '▲' : '▼'}
+              </button>
 
-            {showMyLists && (
-              <>
-                <div className="rounded-xl overflow-hidden divide-y" style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}`, borderColor: COLORS.border }}>
-                  {myLists.slice(0, 3).map((l) => <ListLinkRow key={l.id} list={l} />)}
-                </div>
-                {myLists.length > 3 && (
-                  <a
-                    href={`${topUrl()}?mylists=1`}
-                    className="block text-center text-xs underline mt-3"
-                    style={{ color: COLORS.indigo }}
-                  >
-                    さらに見る（他{myLists.length - 3}件）
-                  </a>
-                )}
-              </>
-            )}
-          </div>
-        )}
+              {showMyLists && (
+                <>
+                  <div className="rounded-xl overflow-hidden divide-y" style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}`, borderColor: COLORS.border }}>
+                    {myLists.slice(0, 3).map((l) => <ListLinkRow key={l.id} list={l} />)}
+                  </div>
+                  {myLists.length > 3 && (
+                    <a
+                      href={`${topUrl()}?mylists=1`}
+                      className="block text-center text-xs underline mt-3"
+                      style={{ color: COLORS.indigo }}
+                    >
+                      さらに見る（他{myLists.length - 3}件）
+                    </a>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* ---- 特長 / シーン / 使い方 ---- */}
+        <div className="space-y-16 pb-16">
+          <FeaturesSection />
+          <ScenesSection />
+          <StepsSection />
+        </div>
+
+        {/* ---- 最後のCTA ---- */}
+        <section className="text-center pb-14">
+          <button
+            onClick={() => { setFormOpen(true); window.scrollTo({ top: 0 }); }}
+            className="w-full py-4 rounded-full font-bold text-lg shadow-sm active:scale-[0.98] transition-transform"
+            style={{ backgroundColor: COLORS.accent, color: '#fff' }}
+          >
+            はじめる
+          </button>
+        </section>
       </main>
+
+      {/* ---- フッター ---- */}
+      <footer className="border-t" style={{ borderColor: COLORS.border }}>
+        <div className="max-w-md mx-auto px-4 py-6">
+          <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2">
+            {FOOTER_LINKS.map((l) => (
+              <li key={l.label}>
+                <a href={l.href} className="text-xs underline" style={{ color: COLORS.inkSoft }}>
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </footer>
 
       {formOpen && <CreateListModal />}
       {showEmailLogin && !notifyEmail && <EmailLoginModal />}
