@@ -25,34 +25,31 @@ function Avatar({ x, y, s = 1, skin = '#F2C6A8', hair = '#3B2F2A', shirt = COLOR
   );
 }
 
-// 特長1：知り合い限定だから安心
+// 特長1：知り合い限定だから安心・手軽
 function IllustrationTrust() {
-  const friends = [
-    { x: 44, y: 46, shirt: COLORS.indigo, hair: '#3B2F2A', skin: '#F2C6A8' },
-    { x: 236, y: 46, shirt: COLORS.moss, hair: '#7A4B2A', skin: '#F5D0B5' },
-    { x: 44, y: 122, shirt: COLORS.accent, hair: '#2B2B2B', skin: '#EDB98F' },
-    { x: 236, y: 122, shirt: '#E0A93B', hair: '#5A3B2E', skin: '#F2C6A8' },
-  ];
   return (
-    <svg viewBox="0 0 280 170" className="w-full max-w-[280px] mx-auto" role="img" aria-label="知り合いだけがつながるイメージ">
-      {friends.map((f) => (
-        <line
-          key={`l${f.x}-${f.y}`}
-          x1={f.x} y1={f.y} x2="140" y2="84"
-          stroke={COLORS.accent} strokeWidth="2" strokeLinecap="round" strokeDasharray="1 6" opacity="0.7"
-        />
-      ))}
-      {friends.map((f) => (
-        <g key={`a${f.x}-${f.y}`}>
-          <circle cx={f.x} cy={f.y} r="25" fill="#fff" stroke={COLORS.border} strokeWidth="2" />
-          <Avatar x={f.x} y={f.y - 4} s={0.85} skin={f.skin} hair={f.hair} shirt={f.shirt} />
-        </g>
-      ))}
+    <svg viewBox="0 0 280 170" className="w-full max-w-[280px] mx-auto" role="img" aria-label="友達同士が直接手渡しするイメージ">
+      {/* 地面 */}
+      <ellipse cx="140" cy="146" rx="112" ry="6" fill="#EDE7E0" />
+
+      {/* 盾 */}
       <path
-        d="M140 36 L176 48 V84 C176 108 160 124 140 132 C120 124 104 108 104 84 V48 Z"
+        d="M140 12 L162 20 V44 C162 58 152 68 140 74 C128 68 118 58 118 44 V20 Z"
         fill={COLORS.accent}
       />
-      <path d="M124 84 L136 96 L158 72" fill="none" stroke="#fff" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M129 44 L137 52 L151 36" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* 友達2人 */}
+      <Avatar x={76} y={112} s={1.4} skin="#F2C6A8" hair="#3B2F2A" shirt={COLORS.indigo} />
+      <Avatar x={204} y={112} s={1.4} skin="#F5D0B5" hair="#7A4B2A" shirt={COLORS.moss} />
+
+      {/* 手渡しする箱 */}
+      <rect x="124" y="108" width="32" height="26" rx="4" fill="#D9A566" />
+      <rect x="137" y="108" width="6" height="26" fill="#F3D9A8" />
+
+      {/* 腕と手 */}
+      <path d="M94 126 L124 126" stroke="#F2C6A8" strokeWidth="6" strokeLinecap="round" />
+      <path d="M186 126 L156 126" stroke="#F5D0B5" strokeWidth="6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -126,14 +123,45 @@ function IllustrationNoSignup() {
   );
 }
 
+// 特長4：無料で使えます
+function IllustrationFree() {
+  const chips = [
+    { x: 4, y: 52, label: 'リスト作成' },
+    { x: 196, y: 52, label: '共有' },
+    { x: 100, y: 138, label: '手数料なし' },
+  ];
+  return (
+    <svg viewBox="0 0 280 170" className="w-full max-w-[280px] mx-auto" role="img" aria-label="無料で使えるイメージ">
+      <circle cx="140" cy="80" r="52" fill={COLORS.accent} />
+      <circle cx="140" cy="80" r="42" fill="none" stroke="#fff" strokeWidth="2" strokeDasharray="3 5" strokeLinecap="round" opacity="0.7" />
+      <text x="140" y="92" textAnchor="middle" fontSize="34" fontWeight="800" fontFamily={SVG_FONT} fill="#fff">
+        0円
+      </text>
+      {chips.map((c) => (
+        <g key={c.label}>
+          <rect x={c.x} y={c.y} width="80" height="26" rx="13" fill="#fff" stroke={COLORS.border} strokeWidth="2" />
+          <circle cx={c.x + 14} cy={c.y + 13} r="6" fill={COLORS.mossSoft} />
+          <path
+            d={`M${c.x + 11} ${c.y + 13} L${c.x + 13.5} ${c.y + 15.5} L${c.x + 17.5} ${c.y + 10.5}`}
+            fill="none" stroke={COLORS.moss} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+          />
+          <text x={c.x + 25} y={c.y + 17} fontSize="10" fontWeight="700" fontFamily={SVG_FONT} fill={COLORS.ink}>
+            {c.label}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 // ============================================================
 // 特長
 // ============================================================
 
 const FEATURES = [
   {
-    title: '知り合い限定だから安心',
-    body: 'フリマアプリやジモティは知らない人との取引だからトラブルが心配。知り合いだからこそ、安心してサクッと気軽に。',
+    title: '知り合い限定だから安心・手軽',
+    body: '知らない人との取引は/トラブルが心配。/知り合いだからこそ、/安心して気軽に。/直接会って渡せば、/梱包や配送の手間も/かかりません。',
     Illustration: IllustrationTrust,
   },
   {
@@ -146,6 +174,11 @@ const FEATURES = [
     body: 'アプリのインストールも、会員登録もなしですぐに使えます。受け取る友達にインストールしてもらう必要もありません。',
     Illustration: IllustrationNoSignup,
   },
+  {
+    title: '無料で使える',
+    body: 'リストの作成も共有も、費用はかかりません。フリマアプリのような手数料もありません。',
+    Illustration: IllustrationFree,
+  },
 ];
 
 export function FeaturesSection() {
@@ -157,7 +190,11 @@ export function FeaturesSection() {
           <h3 className="font-maru font-extrabold text-xl leading-snug mb-3" style={{ textWrap: 'balance' }}>
             {title}
           </h3>
-          <p className="text-sm leading-relaxed mb-7" style={{ color: BODY }}>{body}</p>
+          <p className="text-sm leading-relaxed mb-7" style={{ color: BODY }}>
+            {body.split('/').map((s, i) => (
+              <span key={i} className="inline-block">{s}</span>
+            ))}
+          </p>
           <Illustration />
         </div>
       ))}
