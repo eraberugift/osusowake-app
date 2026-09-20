@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, ChevronRight } from 'lucide-react';
 import { COLORS } from '../constants.js';
 import { topUrl } from '../utils.js';
 import { useApp } from '../context/AppContext.jsx';
@@ -64,12 +64,14 @@ export default function HomeScreen() {
       <main className="max-w-md mx-auto px-4 pt-10">
         {/* ---- ヒーロー ---- */}
         <section className="text-center pb-16">
-          <h1 className="font-maru font-extrabold text-4xl leading-tight mb-6" style={{ color: COLORS.accent }}>
-            誰か欲しい人<br />いるかな？<br />を簡単に。
+          <h1 className="font-maru font-extrabold text-[32px] leading-tight mb-2" style={{ color: COLORS.accent }}>
+            誰か欲しい人<br />いるかな？<br />をかんたんに。
           </h1>
-          <img src="/squirrels-logo.png" alt="ゆずリス" className="w-56 mx-auto mb-6" />
-          <p className="text-[15px] leading-relaxed mb-8" style={{ color: COLORS.ink, textWrap: 'balance' }}>
-            ゆずリスはURLを知り合いに送るだけで、まだ使えるものを欲しい人が分かるサービスです。
+          <img src="/squirrels-logo.png" alt="ゆずリス" className="w-56 mx-auto mb-3" />
+          <p className="text-sm leading-relaxed mb-8" style={{ color: COLORS.ink }}>
+            譲りたいものをリストにして、<br />
+            URLを友達に送るだけ。<br />
+            ゆずリスは、欲しい人がすぐ分かるサービスです。
           </p>
           <button
             onClick={() => setFormOpen(true)}
@@ -90,20 +92,19 @@ export default function HomeScreen() {
               </button>
 
               {showMyLists && (
-                <>
-                  <div className="rounded-xl overflow-hidden divide-y" style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}`, borderColor: COLORS.border }}>
-                    {myLists.slice(0, 3).map((l) => <ListLinkRow key={l.id} list={l} />)}
-                  </div>
+                <div className="rounded-xl overflow-hidden divide-y" style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}`, borderColor: COLORS.border }}>
+                  {myLists.slice(0, 3).map((l) => <ListLinkRow key={l.id} list={l} />)}
                   {myLists.length > 3 && (
                     <a
                       href={`${topUrl()}?mylists=1`}
-                      className="block text-center text-xs underline mt-3"
-                      style={{ color: COLORS.indigo }}
+                      className="flex items-center justify-center gap-1 px-4 py-3 text-xs font-bold active:bg-stone-100 transition-colors"
+                      style={{ color: COLORS.indigo, backgroundColor: '#FCFBF8', borderColor: COLORS.border }}
                     >
-                      さらに見る（他{myLists.length - 3}件）
+                      すべてのリストを見る（全{myLists.length}件）
+                      <ChevronRight size={14} />
                     </a>
                   )}
-                </>
+                </div>
               )}
             </div>
           )}
