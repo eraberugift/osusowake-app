@@ -37,7 +37,7 @@ function rowToList(row) {
 export async function createList(creatorId, { title, deadline }) {
   const { data, error } = await supabase
     .from('lists')
-    .insert({ creator_id: creatorId, title: title || 'ゆずりリスト', deadline: deadline || null })
+    .insert({ creator_id: creatorId, title: title || 'ゆずりたいものリスト', deadline: deadline || null })
     .select()
     .single();
 
@@ -59,7 +59,7 @@ export async function fetchList(listId) {
 export async function updateListTitle(listId, title) {
   const { error } = await supabase
     .from('lists')
-    .update({ title: title || 'ゆずりリスト' })
+    .update({ title: title || 'ゆずりたいものリスト' })
     .eq('id', listId);
 
   if (error) throw error;
@@ -104,7 +104,7 @@ export async function fetchListsByIds(ids) {
 export async function fetchListsByCreator(creatorId) {
   const { data, error } = await supabase
     .from('lists')
-    .select('*')
+    .select('*, items!inner(id)')
     .eq('creator_id', creatorId)
     .order('created_at', { ascending: false });
 

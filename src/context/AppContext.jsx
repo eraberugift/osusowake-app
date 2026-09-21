@@ -175,16 +175,12 @@ export function AppProvider({ children }) {
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  // リスト名を決めて、新しいリストを作成する（トップ画面）
+  // 「はじめる」で即リストを作成して、リスト画面へ移動する
   const handleCreateList = async () => {
-    if (!newListTitle.trim()) {
-      showToast('リストの名前を入れてください');
-      return;
-    }
+    if (creatingList) return;
     setCreatingList(true);
     try {
       const l = await createList(myId, { title: newListTitle.trim() || defaultListTitle(), deadline: null });
-      addMyListId(l.id);
       window.location.href = listUrl(l.id);
     } catch (e) {
       showToast('作成に失敗しました');
@@ -220,6 +216,7 @@ export function AppProvider({ children }) {
         image: imageUrl,
       });
       setItems((cur) => [newItem, ...cur]);
+      addMyListId(currentListId);
       resetForm();
       setFormOpen(false);
       showToast('リストに登録しました！');

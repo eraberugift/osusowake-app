@@ -7,7 +7,6 @@ import GlobalStyle from '../components/GlobalStyle.jsx';
 import Toast from '../components/Toast.jsx';
 import ListLinkRow from '../components/ListLinkRow.jsx';
 import { FeaturesSection, ScenesSection, StepsSection } from '../components/LandingSections.jsx';
-import CreateListModal from '../modals/CreateListModal.jsx';
 import EmailLoginModal from '../modals/EmailLoginModal.jsx';
 import LogoutConfirmModal from '../modals/LogoutConfirmModal.jsx';
 
@@ -17,13 +16,15 @@ const FOOTER_LINKS = [
   { label: 'お問い合わせ', href: '#' },
   { label: 'プライバシーポリシー', href: '#' },
   { label: '利用規約', href: '#' },
+  { label: '開発者の想い', href: `${topUrl()}?about=1` },
 ];
 
 // トップ画面（リスト未選択時）
 export default function HomeScreen() {
   const {
     notifyEmail, setShowEmailLogin, setLogoutConfirmOpen,
-    setFormOpen, formOpen,
+    // setFormOpen, formOpen,
+    handleCreateList, creatingList,
     myLists, showMyLists, setShowMyLists,
     showEmailLogin, logoutConfirmOpen,
   } = useApp();
@@ -74,11 +75,12 @@ export default function HomeScreen() {
             ゆずリスは、欲しい人がすぐ分かるサービスです。
           </p>
           <button
-            onClick={() => setFormOpen(true)}
-            className="w-full py-4 rounded-full font-bold text-lg shadow-sm active:scale-[0.98] transition-transform mb-3"
+            onClick={handleCreateList}
+            disabled={creatingList}
+            className="w-full py-4 rounded-full font-bold text-lg shadow-sm active:scale-[0.98] transition-transform mb-3 disabled:opacity-70"
             style={{ backgroundColor: COLORS.accent, color: '#fff' }}
           >
-            はじめる
+            {creatingList ? '作成中…' : 'はじめる'}
           </button>
 
           {myLists.length > 0 && (
@@ -144,7 +146,6 @@ export default function HomeScreen() {
         </div>
       </footer>
 
-      {formOpen && <CreateListModal />}
       {showEmailLogin && !notifyEmail && <EmailLoginModal />}
       {logoutConfirmOpen && <LogoutConfirmModal />}
 
