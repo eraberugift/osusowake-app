@@ -28,64 +28,107 @@ function Avatar({ x, y, s = 1, skin = '#F2C6A8', hair = '#3B2F2A', shirt = COLOR
 // 特長1：知り合い限定だから安心・手軽
 function IllustrationTrust() {
   return (
-    <svg viewBox="0 0 280 170" className="w-full max-w-[280px] mx-auto" role="img" aria-label="友達同士が直接手渡しするイメージ">
+    <svg viewBox="0 40 280 120" className="w-full max-w-[280px] mx-auto" role="img" aria-label="友達同士が袋のまま直接手渡しするイメージ">
       {/* 地面 */}
-      <ellipse cx="140" cy="146" rx="112" ry="6" fill="#EDE7E0" />
-
-      {/* 盾 */}
-      <path
-        d="M140 12 L162 20 V44 C162 58 152 68 140 74 C128 68 118 58 118 44 V20 Z"
-        fill={COLORS.accent}
-      />
-      <path d="M129 44 L137 52 L151 36" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <ellipse cx="140" cy="152" rx="118" ry="6" fill="#EDE7E0" />
 
       {/* 友達2人 */}
-      <Avatar x={76} y={112} s={1.4} skin="#F2C6A8" hair="#3B2F2A" shirt={COLORS.indigo} />
-      <Avatar x={204} y={112} s={1.4} skin="#F5D0B5" hair="#7A4B2A" shirt={COLORS.moss} />
+      <Avatar x={68} y={106} s={2} skin="#F2C6A8" hair="#3B2F2A" shirt={COLORS.indigo} />
+      <Avatar x={212} y={106} s={2} skin="#F5D0B5" hair="#7A4B2A" shirt={COLORS.moss} />
 
-      {/* 手渡しする箱 */}
-      <rect x="124" y="108" width="32" height="26" rx="4" fill="#D9A566" />
-      <rect x="137" y="108" width="6" height="26" fill="#F3D9A8" />
+      {/* 腕 */}
+      <path d="M94 127 L122 132" stroke="#F2C6A8" strokeWidth="7" strokeLinecap="round" />
+      <path d="M186 127 L158 132" stroke="#F5D0B5" strokeWidth="7" strokeLinecap="round" />
 
-      {/* 腕と手 */}
-      <path d="M94 126 L124 126" stroke="#F2C6A8" strokeWidth="6" strokeLinecap="round" />
-      <path d="M186 126 L156 126" stroke="#F5D0B5" strokeWidth="6" strokeLinecap="round" />
+      {/* 袋からはみ出す不用品：絵本 */}
+      <g transform="rotate(-12 131 116)">
+        <rect x="125" y="100" width="12" height="20" rx="2" fill={COLORS.indigo} />
+        <rect x="127" y="103" width="8" height="2" rx="1" fill="#fff" opacity="0.6" />
+      </g>
+
+      {/* 袋からはみ出す不用品：くま */}
+      <circle cx="141" cy="100" r="3.5" fill="#B98A5E" />
+      <circle cx="155" cy="100" r="3.5" fill="#B98A5E" />
+      <circle cx="148" cy="108" r="9" fill="#B98A5E" />
+      <circle cx="145" cy="107" r="1.2" fill="#3B2F2A" />
+      <circle cx="151" cy="107" r="1.2" fill="#3B2F2A" />
+      <ellipse cx="148" cy="111" rx="3" ry="2" fill="#E6C9A8" />
+
+      {/* 袋 */}
+      <path d="M120 120 H160 L157 150 H123 Z" fill="#E9C48F" />
+      <path d="M121.3 130 H158.7" stroke="#D9A566" strokeWidth="2" />
+
+      {/* 袋を持つ手 */}
+      <circle cx="121" cy="132" r="4" fill="#F2C6A8" />
+      <circle cx="159" cy="132" r="4" fill="#F5D0B5" />
+
+      {/* ハート */}
+      <g transform="translate(-72 12)">
+        <path
+          d="M212 66 c-10 -8 -14 -14 -9 -19 c3 -3 7 -2 9 2 c2 -4 6 -5 9 -2 c5 5 1 11 -9 19 z"
+          fill={COLORS.accent}
+        />
+      </g>
     </svg>
   );
 }
 
-// 特長2：「これ欲しい？」と聞く気まずさがない
+// 特長2：友達に気を遣わせず譲れる
 function IllustrationAwkward() {
   return (
-    <svg viewBox="0 0 280 170" className="w-full max-w-[280px] mx-auto" role="img" aria-label="聞かなくても、タップするだけで伝わるイメージ">
-      {/* 聞きづらい吹き出し */}
-      <rect x="14" y="14" width="120" height="40" rx="14" fill="#fff" stroke={COLORS.border} strokeWidth="2" />
-      <path d="M62 54 L70 68 L82 54" fill="#fff" stroke={COLORS.border} strokeWidth="2" strokeLinejoin="round" />
-      <line x1="63" y1="54" x2="81" y2="54" stroke="#fff" strokeWidth="3" />
-      <text x="74" y="39" textAnchor="middle" fontSize="13" fontWeight="700" fontFamily={SVG_FONT} fill={COLORS.inkSoft}>
-        これ欲しい？
-      </text>
-      <circle cx="132" cy="16" r="9" fill={COLORS.accent} />
-      <path d="M128 12 L136 20 M136 12 L128 20" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
+    <svg viewBox="0 0 280 150" className="w-full max-w-[280px] mx-auto" role="img" aria-label="友達がリストを見て「これ欲しい！」と言っているイメージ">
+      <ellipse cx="140" cy="135" rx="118" ry="5" fill="#EDE7E0" />
 
-      <Avatar x={72} y={100} s={1.5} skin="#F5D0B5" hair="#5A3B2E" shirt={COLORS.moss} />
+      {/* リストを見ている友達 */}
+      <Avatar x={88} y={98} s={1.9} skin="#F5D0B5" hair="#7A4B2A" shirt={COLORS.moss} />
+      <path d="M110 110 L146 106" stroke="#F5D0B5" strokeWidth="7" strokeLinecap="round" />
 
-      {/* スマホ */}
-      <rect x="170" y="20" width="84" height="140" rx="14" fill="#1F1F1F" />
-      <rect x="175" y="25" width="74" height="130" rx="10" fill="#fff" />
-      <rect x="181" y="32" width="62" height="44" rx="6" fill={COLORS.accentSoft} />
-      <path
-        d="M212 66 c-10 -8 -14 -14 -9 -19 c3 -3 7 -2 9 2 c2 -4 6 -5 9 -2 c5 5 1 11 -9 19 z"
-        fill={COLORS.accent}
-      />
-      <rect x="181" y="82" width="40" height="5" rx="2.5" fill="#E5DED6" />
-      <rect x="181" y="92" width="28" height="4" rx="2" fill={COLORS.border} />
-      <rect x="181" y="108" width="62" height="20" rx="10" fill={COLORS.accent} />
-      <text x="212" y="121.5" textAnchor="middle" fontSize="8" fontWeight="800" fontFamily={SVG_FONT} fill="#fff">
+      {/* スマホ（リスト画面） */}
+      <rect x="148" y="12" width="74" height="106" rx="12" fill="#1F1F1F" />
+      <rect x="153" y="17" width="64" height="96" rx="8" fill="#fff" />
+      <rect x="159" y="22" width="24" height="4" rx="2" fill={COLORS.accent} />
+
+      {/* 1行目 */}
+      <rect x="159" y="32" width="18" height="18" rx="4" fill="#F0ECE2" />
+      <rect x="163" y="36" width="10" height="10" rx="2" fill={COLORS.indigo} />
+      <rect x="182" y="35" width="26" height="4" rx="2" fill="#E5DED6" />
+      <rect x="182" y="42" width="16" height="3" rx="1.5" fill={COLORS.border} />
+
+      {/* 2行目（選んだもの） */}
+      <rect x="157" y="54" width="56" height="30" rx="6" fill={COLORS.accentSoft} />
+      <rect x="161" y="60" width="18" height="18" rx="4" fill="#fff" />
+      <rect x="165" y="64" width="10" height="10" rx="2" fill={COLORS.accent} />
+      <rect x="184" y="62" width="20" height="4" rx="2" fill="#E9CFC6" />
+      <circle cx="202" cy="73" r="6.5" fill={COLORS.accent} />
+      <g transform="translate(202 75.6) scale(0.22) translate(-212 -66)">
+        <path
+          d="M212 66 c-10 -8 -14 -14 -9 -19 c3 -3 7 -2 9 2 c2 -4 6 -5 9 -2 c5 5 1 11 -9 19 z"
+          fill="#fff"
+        />
+      </g>
+
+      {/* 3行目 */}
+      <rect x="159" y="90" width="18" height="18" rx="4" fill="#F0ECE2" />
+      <rect x="163" y="94" width="10" height="10" rx="2" fill={COLORS.moss} />
+      <rect x="182" y="93" width="26" height="4" rx="2" fill="#E5DED6" />
+      <rect x="182" y="100" width="16" height="3" rx="1.5" fill={COLORS.border} />
+
+      {/* 手 */}
+      <circle cx="147" cy="106" r="4" fill="#F5D0B5" />
+
+      {/* 吹き出し */}
+      <rect x="32" y="14" width="100" height="36" rx="14" fill={COLORS.accent} />
+      <path d="M78 50 L86 63 L98 50 Z" fill={COLORS.accent} />
+      <text x="82" y="36.5" textAnchor="middle" fontSize="13" fontWeight="800" fontFamily={SVG_FONT} fill="#fff">
         これ欲しい！
       </text>
-      <circle cx="236" cy="130" r="11" fill={COLORS.accent} opacity="0.25" />
-      <circle cx="236" cy="130" r="4" fill={COLORS.accent} opacity="0.7" />
+      <circle cx="130" cy="18" r="10" fill="#fff" stroke={COLORS.border} strokeWidth="2" />
+      <g transform="translate(130 22.5) scale(0.4) translate(-212 -66)">
+        <path
+          d="M212 66 c-10 -8 -14 -14 -9 -19 c3 -3 7 -2 9 2 c2 -4 6 -5 9 -2 c5 5 1 11 -9 19 z"
+          fill={COLORS.accent}
+        />
+      </g>
     </svg>
   );
 }
@@ -94,18 +137,21 @@ function IllustrationAwkward() {
 function IllustrationNoSignup() {
   return (
     <svg viewBox="0 0 280 170" className="w-full max-w-[280px] mx-auto" role="img" aria-label="アプリも会員登録もいらないイメージ">
-      {/* 不要なもの（左右） */}
+      {/* 不要なもの（左：アプリ） */}
       <rect x="18" y="48" width="54" height="54" rx="12" fill="#fff" stroke={COLORS.inkSoft} strokeWidth="2" strokeDasharray="4 4" />
       <text x="45" y="80" textAnchor="middle" fontSize="11" fontWeight="700" fontFamily={SVG_FONT} fill={COLORS.inkSoft}>
         アプリ
       </text>
-      <line x1="14" y1="44" x2="76" y2="106" stroke={COLORS.accent} strokeWidth="4" strokeLinecap="round" />
+      <circle cx="72" cy="48" r="9" fill={COLORS.accent} />
+      <path d="M68 44 L76 52 M76 44 L68 52" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
 
+      {/* 不要なもの（右：会員登録） */}
       <rect x="208" y="48" width="54" height="54" rx="12" fill="#fff" stroke={COLORS.inkSoft} strokeWidth="2" strokeDasharray="4 4" />
       <text x="235" y="80" textAnchor="middle" fontSize="10" fontWeight="700" fontFamily={SVG_FONT} fill={COLORS.inkSoft}>
         会員登録
       </text>
-      <line x1="204" y1="44" x2="266" y2="106" stroke={COLORS.accent} strokeWidth="4" strokeLinecap="round" />
+      <circle cx="262" cy="48" r="9" fill={COLORS.accent} />
+      <path d="M258 44 L266 52 M266 44 L258 52" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
 
       {/* すぐ使えるスマホ */}
       <rect x="100" y="14" width="80" height="146" rx="14" fill="#1F1F1F" />
@@ -123,12 +169,13 @@ function IllustrationNoSignup() {
   );
 }
 
-// 特長4：無料で使えます
+// 特長4：無料で使える
 function IllustrationFree() {
+  const CHIP_W = 84;
   const chips = [
     { x: 4, y: 52, label: 'リスト作成' },
-    { x: 196, y: 52, label: '共有' },
-    { x: 100, y: 138, label: '手数料なし' },
+    { x: 192, y: 52, label: '共有' },
+    { x: 98, y: 140, label: '手数料なし' },
   ];
   return (
     <svg viewBox="0 0 280 170" className="w-full max-w-[280px] mx-auto" role="img" aria-label="無料で使えるイメージ">
@@ -137,19 +184,23 @@ function IllustrationFree() {
       <text x="140" y="92" textAnchor="middle" fontSize="34" fontWeight="800" fontFamily={SVG_FONT} fill="#fff">
         0円
       </text>
-      {chips.map((c) => (
-        <g key={c.label}>
-          <rect x={c.x} y={c.y} width="80" height="26" rx="13" fill="#fff" stroke={COLORS.border} strokeWidth="2" />
-          <circle cx={c.x + 14} cy={c.y + 13} r="6" fill={COLORS.mossSoft} />
-          <path
-            d={`M${c.x + 11} ${c.y + 13} L${c.x + 13.5} ${c.y + 15.5} L${c.x + 17.5} ${c.y + 10.5}`}
-            fill="none" stroke={COLORS.moss} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
-          />
-          <text x={c.x + 25} y={c.y + 17} fontSize="10" fontWeight="700" fontFamily={SVG_FONT} fill={COLORS.ink}>
-            {c.label}
-          </text>
-        </g>
-      ))}
+      {chips.map((c) => {
+        const contentW = 18 + c.label.length * 10;
+        const left = c.x + (CHIP_W - contentW) / 2;
+        return (
+          <g key={c.label}>
+            <rect x={c.x} y={c.y} width={CHIP_W} height="26" rx="13" fill="#fff" stroke={COLORS.border} strokeWidth="2" />
+            <circle cx={left + 6} cy={c.y + 13} r="6" fill={COLORS.mossSoft} />
+            <path
+              d={`M${left + 3} ${c.y + 13} L${left + 5.5} ${c.y + 15.5} L${left + 9.5} ${c.y + 10.5}`}
+              fill="none" stroke={COLORS.moss} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+            />
+            <text x={left + 18} y={c.y + 17} fontSize="10" fontWeight="700" fontFamily={SVG_FONT} fill={COLORS.ink}>
+              {c.label}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
@@ -161,22 +212,23 @@ function IllustrationFree() {
 const FEATURES = [
   {
     title: '知り合い限定だから安心・手軽',
-    body: '知らない人との取引は/トラブルが心配。/知り合いだからこそ、/安心して気軽に。/直接会って渡せば、/梱包や配送の/手間もかかりません。',
+    body: '知らない人との取引は/トラブルが心配。/知り合いだからこそ安心。/直接会って渡せば、/梱包や配送の/手間もかかりません。',
     Illustration: IllustrationTrust,
   },
   {
-    title: '「これ欲しい？」と聞く気まずさがない',
-    body: '実はこれ欲しかった。でも「これ欲しい？」と聞くのって違和感。そんなもどかしい、もったいない経験がなくなります。',
+    title: '友達に気を遣わせず譲れる',
+    body: '「実はこれ欲しかった」と/後日知ることも。/でも「これ欲しい？」と聞くのは、/相手に気を遣わせそう。/ゆずリスなら、/欲しい人が/自分から手を挙げる仕組みです。',
     Illustration: IllustrationAwkward,
   },
   {
     title: '会員登録不要でかんたん利用',
-    body: 'アプリのインストールも、会員登録もなしですぐに使えます。受け取る友達にインストールしてもらう必要もありません。',
+    body: 'アプリのインストールも、/会員登録もなしで/すぐに使えます。/受け取る友達に/インストールしてもらう/必要もありません。',
     Illustration: IllustrationNoSignup,
   },
   {
     title: '無料で使える',
-    body: 'リストの作成も共有も、費用はかかりません。フリマアプリのような手数料もありません。',
+    body: 'リストの作成も共有も、/費用はかかりません。/フリマアプリのような/手数料もありません。',
+    note: '※今後、一部有料の機能を追加する場合があります。',
     Illustration: IllustrationFree,
   },
 ];
@@ -184,18 +236,23 @@ const FEATURES = [
 export function FeaturesSection() {
   return (
     <section className="space-y-5">
-      {FEATURES.map(({ title, body, Illustration }, i) => (
+      {FEATURES.map(({ title, body, note, Illustration }, i) => (
         <div key={title} className="rounded-3xl px-5 pt-8 pb-7 text-center" style={{ backgroundColor: CARD_BG }}>
           <p className="italic font-bold text-sm mb-3" style={{ color: COLORS.accent }}>特長その{i + 1}</p>
           <h3 className="font-maru font-extrabold text-xl leading-snug mb-3" style={{ textWrap: 'balance' }}>
             {title}
           </h3>
           <p className="text-sm leading-relaxed mb-7" style={{ color: BODY }}>
-            {body.split('/').map((s, i) => (
-              <span key={i} className="inline-block">{s}</span>
+            {body.split('/').map((s, j) => (
+              <span key={j} className="inline-block">{s}</span>
             ))}
           </p>
           <Illustration />
+          {note && (
+            <p className="text-[11px] leading-relaxed mt-5" style={{ color: BODY }}>
+              {note}
+            </p>
+          )}
         </div>
       ))}
     </section>
@@ -207,24 +264,30 @@ export function FeaturesSection() {
 // ============================================================
 
 const SCENES = [
-  'まだ使えるサイズアウトした子供用品',
-  '引っ越しで時間がない',
-  '大学の教科書や家具を後輩に譲りたい',
-  '大きいものはフリマアプリだとコスパが悪い',
+  'まだ使える/サイズアウトした/子供用品',
+  '引っ越しで/時間がない',
+  '大学の教科書や/家具を後輩に/譲りたい',
+  '大きいものは/フリマアプリだと/コスパが悪い',
 ];
+
+const MARKER = 'rgba(226,121,93,0.28)'; // 蛍光ペン風の下線の色
 
 export function ScenesSection() {
   return (
-    <section>
-      <h2 className={`${H2_CLASS} mb-6`}>こんなシーンでおすすめ</h2>
-      <ul className="flex flex-wrap gap-2.5">
+    <section className="py-14">
+      <h2 className={`${H2_CLASS} mb-12`}>こんなシーンでおすすめ</h2>
+      <ul className="space-y-8 text-center">
         {SCENES.map((s) => (
-          <li
-            key={s}
-            className="rounded-full px-4 py-2 text-[13px] font-bold leading-snug"
-            style={{ border: `2px solid ${COLORS.accent}`, color: COLORS.accent }}
-          >
-            # {s}
+          <li key={s} className="font-maru font-bold text-[17px] leading-relaxed">
+            {s.split('/').map((seg, j) => (
+              <span
+                key={j}
+                className="inline-block"
+                style={{ backgroundImage: `linear-gradient(transparent 62%, ${MARKER} 62%)` }}
+              >
+                {seg}
+              </span>
+            ))}
           </li>
         ))}
       </ul>
@@ -389,7 +452,7 @@ function ScreenDone() {
 }
 
 const STEPS = [
-  { title: '譲りたいものを入力する', body: '写真・品名・状態を入れるだけ。会員登録は不要です。', Screen: ScreenInput },
+  { title: '譲りたいものを登録する', body: '写真・品名・状態を入れるだけ。会員登録は不要です。', Screen: ScreenInput },
   { title: 'リンクを友達にシェアする', body: 'LINEで送るか、リンクをコピーするだけ。URLを知っている人だけがアクセスできます。', Screen: ScreenShare },
   { title: '欲しい人がいたらマッチング', body: '欲しい人がいたらマッチングします。', Screen: ScreenMatching },
   { title: '譲ったらお譲り完了', body: '友達と連絡をとって、大切にしていたものを譲ろう。', Screen: ScreenDone },
@@ -398,7 +461,7 @@ const STEPS = [
 export function StepsSection() {
   return (
     <section>
-      <h2 className={`${H2_CLASS} mb-8`}>1分でわかるゆずリスの使い方</h2>
+      <h2 className={`${H2_CLASS} mb-8`}>1分でわかる使い方</h2>
       <div className="space-y-12">
         {STEPS.map(({ title, body, Screen }, i) => (
           <div key={title}>

@@ -69,7 +69,7 @@ export default function HomeScreen() {
           </h1>
           <img src="/squirrels-logo.png" alt="ゆずリス" className="w-56 mx-auto mb-3" />
           <p className="text-sm leading-relaxed mb-8" style={{ color: COLORS.ink }}>
-            譲りたいものをリストにして、<br />
+            もう使わないものをリストにして、<br />
             URLを友達に送るだけ。<br />
             ゆずリスは、欲しい人がすぐ分かるサービスです。
           </p>
