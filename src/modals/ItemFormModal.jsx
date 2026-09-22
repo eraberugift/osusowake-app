@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Camera, Loader2, AlertTriangle } from 'lucide-react';
+import { X, Camera, Loader2, AlertTriangle, Trash2 } from 'lucide-react';
 import { COLORS, CONDITIONS } from '../constants.js';
 import { useApp } from '../context/AppContext.jsx';
 import { FullScreen } from '../components/ModalShell.jsx';
@@ -10,14 +10,15 @@ export default function ItemFormModal() {
     setFormOpen, resetForm, setShowExample,
     fileRef, handleFile, preview, compressing,
     name, setName, condition, setCondition, description, setDescription,
-    submitItem,
+    submitItem, editingItem, requestDelete,
   } = useApp();
+  const isEdit = !!editingItem;
 
   return (
     <FullScreen>
       <div className="sticky top-0 flex items-center gap-3 px-4 py-3 border-b" style={{ backgroundColor: COLORS.bg, borderColor: COLORS.border }}>
         <button onClick={() => { setFormOpen(false); resetForm(); }}><X size={20} /></button>
-        <h2 className="font-maru font-bold text-base flex-1">商品の出品</h2>
+        <h2 className="font-maru font-bold text-base flex-1">{isEdit ? '商品の編集' : '商品の出品'}</h2>
         <button
           onClick={() => setShowExample(true)}
           className="text-xs underline flex-shrink-0"
@@ -33,8 +34,8 @@ export default function ItemFormModal() {
           <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" id="photo-input" />
           <label
             htmlFor="photo-input"
-            className="flex items-center justify-center rounded-xl cursor-pointer overflow-hidden"
-            style={{ height: preview ? 'auto' : '11rem', border: `1.5px dashed ${COLORS.border}`, backgroundColor: '#FCFBF8' }}
+            className="flex items-center justify-center rounded-xl cursor-pointer overflow-hidden mx-auto"
+  style={{ width: '10rem', height: '10rem', border: `1.5px dashed ${COLORS.borderStrong}`, backgroundColor: '#FCFBF8' }}
           >
             {compressing ? (
               <div className="flex flex-col items-center gap-1.5 py-8" style={{ color: COLORS.inkSoft }}>
@@ -42,7 +43,7 @@ export default function ItemFormModal() {
                 <span className="text-xs">処理中…</span>
               </div>
             ) : preview ? (
-              <img src={preview} alt="preview" className="w-full max-h-64 object-cover" />
+              <img src={preview} alt="preview" className="w-full h-full object-cover" />
             ) : (
               <div className="flex flex-col items-center gap-1.5 py-8" style={{ color: COLORS.inkSoft }}>
                 <Camera size={24} />
@@ -107,6 +108,16 @@ export default function ItemFormModal() {
             style={{ border: `1px solid ${COLORS.border}`, backgroundColor: '#FCFBF8' }}
           />
         </div>
+        {isEdit && (
+          <button
+            onClick={() => requestDelete(editingItem)}
+            className="w-full flex items-center justify-center gap-1.5 py-3 rounded-lg text-xs font-bold"
+            style={{ border: `1px solid ${COLORS.border}`, color: COLORS.accentDeep }}
+          >
+            <Trash2 size={14} />
+            この商品を削除する
+          </button>
+        )}
       </div>
 
       <div className="px-4 py-3 border-t" style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}>
@@ -115,7 +126,7 @@ export default function ItemFormModal() {
           className="w-full py-3.5 rounded-full font-bold text-sm shadow-sm active:scale-[0.98] transition-transform"
           style={{ backgroundColor: COLORS.accent, color: '#fff' }}
         >
-          この内容で出品する
+          {isEdit ? 'この内容で保存する' : 'この内容で出品する'}
         </button>
       </div>
     </FullScreen>

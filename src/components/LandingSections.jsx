@@ -321,20 +321,48 @@ function PhoneStage({ children }) {
   );
 }
 
+function KidsClothingIllustration() {
+  return (
+    <svg viewBox="0 0 100 100" width="55%" height="55%" role="img" aria-label="キッズ服のイラスト">
+      {/* パフスリーブ */}
+      <circle cx="24" cy="34" r="10" fill={COLORS.accent} stroke={COLORS.ink} strokeWidth="3" />
+      <circle cx="76" cy="34" r="10" fill={COLORS.accent} stroke={COLORS.ink} strokeWidth="3" />
+      {/* 本体（Aラインワンピース） */}
+      <path
+        d="M34,26 C27,29 23,35 26,42 L18,84 Q50,92 82,84 L74,42 C77,35 73,29 66,26 Q50,40 34,26 Z"
+        fill={COLORS.accent}
+        stroke={COLORS.ink}
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      {/* 胸元のリボン */}
+      <path d="M50,34 L40,28 L40,40 Z" fill={COLORS.moss} stroke={COLORS.ink} strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M50,34 L60,28 L60,40 Z" fill={COLORS.moss} stroke={COLORS.ink} strokeWidth="1.6" strokeLinejoin="round" />
+      <circle cx="50" cy="34" r="3.4" fill={COLORS.moss} stroke={COLORS.ink} strokeWidth="1.6" />
+      {/* 水玉 */}
+      <circle cx="38" cy="58" r="3.2" fill={COLORS.accentSoft} />
+      <circle cx="62" cy="58" r="3.2" fill={COLORS.accentSoft} />
+      <circle cx="50" cy="70" r="3.2" fill={COLORS.accentSoft} />
+      <circle cx="34" cy="80" r="3.2" fill={COLORS.accentSoft} />
+      <circle cx="66" cy="80" r="3.2" fill={COLORS.accentSoft} />
+    </svg>
+  );
+}
+
 // 1. 譲りたいものを入力する
 function ScreenInput() {
   return (
     <div className="space-y-2">
       <div>
         <p className="text-[8px] font-bold mb-1" style={LABEL}>写真</p>
-        <div className="h-14 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.accentSoft, color: COLORS.accent }}>
-          <Shirt size={22} />
+        <div className="w-3/5 mx-auto aspect-square rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.accentSoft }}>
+          <KidsClothingIllustration />
         </div>
       </div>
       <div>
         <p className="text-[8px] font-bold mb-1" style={LABEL}>品名</p>
         <p className="font-maru font-extrabold text-[12px] pb-1 border-b" style={{ borderColor: COLORS.border }}>
-          ワンピース（Mサイズ）
+          キッズ服（95cmサイズ）
         </p>
       </div>
       <div>
@@ -355,7 +383,7 @@ function ScreenInput() {
           ))}
         </div>
       </div>
-      <div className="mt-1 py-2 rounded-full text-center text-[9px] font-bold" style={{ backgroundColor: COLORS.accent, color: '#fff' }}>
+      <div className="py-2 rounded-full text-center text-[9px] font-bold" style={{ backgroundColor: COLORS.accent, color: '#fff', marginTop: 20 }}>
         この内容で出品する
       </div>
     </div>
@@ -452,8 +480,8 @@ function ScreenDone() {
 }
 
 const STEPS = [
-  { title: '譲りたいものを登録する', body: '写真・品名・状態を入れるだけ。会員登録は不要です。', Screen: ScreenInput },
-  { title: 'リンクを友達にシェアする', body: 'LINEで送るか、リンクをコピーするだけ。URLを知っている人だけがアクセスできます。', Screen: ScreenShare },
+  { title: '譲りたいものを登録する', body: '写真・品名・状態を入れるだけ。/サクッと出品できます。', Screen: ScreenInput },
+  { title: 'リストを友達にシェアする', body: '作ったリストのURLをLINEなどでシェアするだけ。/URLを知っている人だけがアクセスできます。', Screen: ScreenShare },
   { title: '欲しい人がいたらマッチング', body: '欲しい人がいたらマッチングします。', Screen: ScreenMatching },
   { title: '譲ったらお譲り完了', body: '友達と連絡をとって、大切にしていたものを譲ろう。', Screen: ScreenDone },
 ];
@@ -469,7 +497,11 @@ export function StepsSection() {
             <PhoneStage>
               <Screen />
             </PhoneStage>
-            <p className="text-[15px] leading-relaxed mt-5" style={{ color: COLORS.ink }}>{body}</p>
+            <p className="text-[15px] leading-relaxed mt-5" style={{ color: COLORS.ink }}>
+              {body.split('/').map((s, j) => (
+                <span key={j} className="inline-block">{s}</span>
+              ))}
+            </p>
           </div>
         ))}
       </div>

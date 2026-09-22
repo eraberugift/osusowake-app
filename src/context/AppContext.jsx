@@ -3,7 +3,7 @@ import {
   getCurrentUserId, getMyId, setMyId,
   createList, fetchList, updateListTitle,
   getMyListIds, addMyListId, fetchListsByIds, fetchListsByCreator,
-  fetchItemsByList, insertItem, updateItemFields, deleteItemRow, uploadItemImage,
+  fetchItemsByList, insertItem, updateItemFields, updateItemContent, deleteItemRow, uploadItemImage,
   loginOrRegisterWithEmail, getNotifyEmail, updateNotifyEmail, logout,
   addEmailHistory
 } from '../storage.js';
@@ -50,7 +50,7 @@ export function AppProvider({ children }) {
   const [savingTitle, setSavingTitle] = useState(false);
 
   const [viewItem, setViewItem] = useState(null);
-  const [ownerMenuOpen, setOwnerMenuOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   const [name, setName] = useState('');
   const [condition, setCondition] = useState(CONDITIONS[0]);
@@ -167,12 +167,25 @@ export function AppProvider({ children }) {
     setCompressing(false);
   };
 
+  // 変更後
   const resetForm = () => {
     setName('');
     setCondition(CONDITIONS[0]);
     setDescription('');
     setPreview(null);
+    setEditingItem(null); // ★追加
     if (fileRef.current) fileRef.current.value = '';
+  };
+
+  // ★追加：商品の編集画面を開く（今の内容をフォームに入れてから開く）
+  const openEdit = (item) => {
+    setEditingItem(item);
+    setName(item.name);
+    setCondition(item.condition);
+    setDescription(item.description || '');
+    setPreview(item.image || null);
+    if (fileRef.current) fileRef.current.value = '';
+    setFormOpen(true);
   };
 
   // 「はじめる」で即リストを作成して、リスト画面へ移動する
@@ -188,42 +201,60 @@ export function AppProvider({ children }) {
     }
   };
 
-  // 商品を登録する（すでにあるリストへの追加）
-  const submitItem = async () => {
-    if (!name.trim()) {
-      showToast('品名を入力してください');
-      return;
-    }
-
-    let imageUrl = null;
-    if (preview) {
-      try {
-        setCompressing(true);
-        imageUrl = await uploadItemImage(preview);
-      } catch (e) {
-        showToast('画像のアップロードに失敗しました');
-        setCompressing(false);
+    // 商品を登録する／編集内容を保存する
+    const submitItem = async () => {
+      if (!name.trim()) {
+        showToast('品名を入力してください');
         return;
       }
-      setCompressing(false);
-    }
 
-    try {
-      const newItem = await insertItem(currentListId, myId, {
+      // 既存の画像はURL（http...）、新しく選んだ画像は data: で始まる
+      let imageUrl = preview;
+      if (preview && preview.startsWith('data:')) {
+        try {
+          setCompressing(true);
+          imageUrl = await uploadItemImage(preview);
+        } catch (e) {
+          showToast('画像のアップロードに失敗しました');
+          setCompressing(false);
+          return;
+        }
+        setCompressing(false);
+      }
+
+      const fields = {
         name: name.trim(),
         condition,
         description: description.trim(),
         image: imageUrl,
-      });
-      setItems((cur) => [newItem, ...cur]);
-      addMyListId(currentListId);
-      resetForm();
-      setFormOpen(false);
-      showToast('リストに登録しました！');
-    } catch (e) {
-      showToast('登録に失敗しました');
-    }
-  };
+      };
+
+      // 編集の場合
+      if (editingItem) {
+        try {
+          await updateItemContent(editingItem.id, fields);
+          setItems((cur) => cur.map((it) => (it.id === editingItem.id ? { ...it, ...fields } : it)));
+          setViewItem((v) => (v && v.id === editingItem.id ? { ...v, ...fields } : v));
+          resetForm();
+          setFormOpen(false);
+          showToast('変更を保存しました');
+        } catch (e) {
+          showToast('保存に失敗しました');
+        }
+        return;
+      }
+
+      // 新規出品の場合
+      try {
+        const newItem = await insertItem(currentListId, myId, fields);
+        setItems((cur) => [newItem, ...cur]);
+        resetForm();
+        setFormOpen(false);
+        showToast('リストに登録しました！');
+      } catch (e) {
+        showToast('登録に失敗しました');
+      }
+    };
 
   const handleSaveTitle = async () => {
     if (!titleInput.trim()) {
@@ -350,7 +381,6 @@ export function AppProvider({ children }) {
       await updateItemFields(item.id, { status: 'done' });
       setItems((cur) => cur.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it)));
       setViewItem((v) => (v && v.id === item.id ? { ...v, status: 'done' } : v));
-      setOwnerMenuOpen(false);
       showToast('お譲り確定にしました');
     } catch (e) {
       showToast('更新に失敗しました');
@@ -365,6 +395,10 @@ export function AppProvider({ children }) {
       setItems((cur) => cur.filter((it) => it.id !== confirmDelete.id));
       showToast('削除しました');
       setViewItem((v) => (v && v.id === confirmDelete.id ? null : v));
+      if (editingItem && editingItem.id === confirmDelete.id) {
+        setFormOpen(false);
+        resetForm();
+      }
       setConfirmDelete(null);
     } catch (e) {
       showToast('削除に失敗しました');
@@ -399,7 +433,7 @@ export function AppProvider({ children }) {
     shareSheetOpen, setShareSheetOpen, shareUrl, lineShareUrl, copyLink,
     titleEditing, setTitleEditing, titleInput, setTitleInput, savingTitle, handleSaveTitle,
     // アイテム詳細・操作
-    viewItem, setViewItem, ownerMenuOpen, setOwnerMenuOpen,
+    viewItem, setViewItem, editingItem, openEdit,
     modalItem, setModalItem, modalStage, claimerInput, setClaimerInput,
     openWantModal, confirmClaim, markDone,
     requestDelete, confirmDelete, setConfirmDelete, doDelete,

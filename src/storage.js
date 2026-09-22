@@ -167,6 +167,14 @@ export async function updateItemFields(id, patch) {
   if (error) throw error;
 }
 
+export async function updateItemContent(id, { name, condition, description, image }) {
+  const { error } = await supabase
+    .from('items')
+    .update({ name, condition, description, image })
+    .eq('id', id);
+  if (error) throw error;
+}
+
 export async function deleteItemRow(id) {
   const { error } = await supabase.from('items').delete().eq('id', id);
   if (error) throw error;

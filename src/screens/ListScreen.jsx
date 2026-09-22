@@ -62,7 +62,7 @@ export default function ListScreen() {
             <div className="max-w-md mx-auto px-4 pt-4 pb-3">
               <button
                 onClick={() => { setShareSheetOpen(true); setTitleInput(list?.title || ''); }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full font-bold font-kaku text-sm active:scale-[0.98] transition-transform"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-full font-bold font-kaku text-sm active:scale-[0.98] transition-transform"
                 style={{ backgroundColor: COLORS.accent, color: '#fff' }}
               >
                 <Share2 size={16} />
@@ -120,8 +120,8 @@ export default function ListScreen() {
         </button>
       )}
 
-      {formOpen && <ItemFormModal />}
       {viewItem && <ItemDetailModal />}
+      {formOpen && <ItemFormModal />}
       {shareSheetOpen && <ShareSheet />}
       {modalItem && <WantModal />}
       {confirmDelete && <ConfirmDeleteModal />}

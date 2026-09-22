@@ -146,7 +146,7 @@ export default function AboutScreen() {
 
         <a
           href={topUrl()}
-          className="about-link block mt-8 w-full text-center py-3.5 rounded-full font-bold text-sm shadow-sm active:scale-[0.98] transition-transform"
+          className="about-link block mt-8 w-full text-center py-4 rounded-full font-bold text-lg shadow-sm active:scale-[0.98] transition-transform"
           style={{ backgroundColor: COLORS.accent, color: '#fff' }}
         >
           ゆずリスを使ってみる
