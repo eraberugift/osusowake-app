@@ -321,7 +321,7 @@ function PhoneStage({ children, overlaySheet }) {
 
           {/* ↓ オーバーレイをこの内側に移動 */}
           {overlaySheet && (
-            <div className="absolute inset-0 rounded-t-[1.6rem] overflow-hidden">
+            <div className="absolute inset-0 rounded-t-[1.6rem] overflow-hidden flex flex-col justify-end">
               {overlaySheet}
             </div>
           )}
@@ -394,7 +394,7 @@ function ScreenInput() {
           ))}
         </div>
       </div>
-      <div className="py-2 rounded-full text-center text-[9px] font-bold" style={{ backgroundColor: COLORS.accent, color: '#fff', marginTop: 20 }}>
+      <div className="py-2 rounded-full text-center text-[9px] font-bold" style={{ backgroundColor: COLORS.accent, color: '#fff', marginTop: 15 }}>
         この内容で出品する
       </div>
     </div>
@@ -424,7 +424,7 @@ function ShareOverlaySheet() {
     <>
       <div className="absolute inset-0 backdrop-blur-[1px]" style={{ backgroundColor: 'rgba(0,0,0,0.32)' }} />
       <div
-        className="absolute bottom-0 left-0 right-0 rounded-t-3xl px-3 pt-3 pb-3"
+        className="relative rounded-t-3xl px-3 pt-3 pb-3"
         style={{ backgroundColor: '#fff', boxShadow: '0 -10px 24px rgba(0,0,0,0.18)' }}
       >
         <div className="flex items-center justify-between mb-2">
