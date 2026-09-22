@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shirt, Bike, BookOpen, MessageCircle, Link2, Pencil } from 'lucide-react';
+import { Shirt, Bike, BookOpen, MessageCircle, Link2, Pencil, X } from 'lucide-react';
 import { COLORS, CONDITIONS } from '../constants.js';
 
 // トップページ（HomeScreen）の下半分：特長・シーン・使い方
@@ -302,25 +302,36 @@ export function ScenesSection() {
 const LABEL = { color: COLORS.inkSoft };
 
 // アクセント色の大きな角丸パネル＋下が切れたスマホ
-function PhoneStage({ children }) {
+// hideHeader: true にすると、この共通ヘッダーを描画しない
+// （その画面自身がヘッダーを描画し、オーバーレイの下に含めたい場合に使う）
+function PhoneStage({ children, overlaySheet }) {
   return (
     <div className="relative w-full aspect-square overflow-hidden rounded-[2rem]" style={{ backgroundColor: COLORS.accent }}>
       <div
         className="absolute left-1/2 top-[9%] w-[66%] -translate-x-1/2 rounded-t-[2rem] px-[6px] pt-[6px]"
         style={{ backgroundColor: '#1C1917', height: '100%' }}
       >
-        <div className="h-full rounded-t-[1.6rem] overflow-hidden px-3 pt-3 font-kaku" style={{ backgroundColor: '#fff', color: COLORS.ink }}>
+        {/* ↓ relative を追加 */}
+        <div className="relative h-full rounded-t-[1.6rem] overflow-hidden px-3 pt-3 font-kaku" style={{ backgroundColor: '#fff', color: COLORS.ink }}>
           <div className="flex items-center justify-center gap-1 mb-3">
             <span className="font-maru font-bold text-[11px]" style={{ color: COLORS.accent }}>ゆずリス</span>
             <img src="/squirrels-logo.png" alt="" style={{ height: 14, width: 'auto' }} />
           </div>
           {children}
+
+          {/* ↓ オーバーレイをこの内側に移動 */}
+          {overlaySheet && (
+            <div className="absolute inset-0 rounded-t-[1.6rem] overflow-hidden">
+              {overlaySheet}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
+// キッズ服（パフスリーブワンピース）のシンプルなイラスト。写真未登録時のサンプル表示に使う
 function KidsClothingIllustration() {
   return (
     <svg viewBox="0 0 100 100" width="55%" height="55%" role="img" aria-label="キッズ服のイラスト">
@@ -390,34 +401,57 @@ function ScreenInput() {
   );
 }
 
-// 2. リンクを友達にシェアする
+// 2. リストを友達にシェアする（LINEのトーク画面イメージ）
+// 2. リストを友達にシェアする（背景：アイテム一覧）
 function ScreenShare() {
   return (
     <div>
-      <p className="font-maru font-bold text-[10px] mb-2">このリストを共有しよう</p>
-      <div
-        className="rounded-lg px-2 py-1.5 mb-2 flex items-center justify-between gap-2"
-        style={{ backgroundColor: '#FCFBF8', border: `1px solid ${COLORS.border}` }}
-      >
-        <span className="text-[9px] font-bold truncate">子供用品をゆずります</span>
-        <Pencil size={9} style={{ color: COLORS.indigo, flexShrink: 0 }} />
+      <div className="flex items-baseline justify-between mb-1">
+        <p className="font-maru font-bold text-[9px]">アイテム一覧</p>
+        <p className="text-[8px]" style={LABEL}>2件</p>
       </div>
-      <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 mb-1.5 text-[9px] font-bold" style={{ backgroundColor: COLORS.line, color: '#fff' }}>
-        <MessageCircle size={11} />
-        LINEで送る
+      <div className="divide-y" style={{ borderColor: COLORS.border }}>
+        <MiniItem icon={Bike} name="キッズ自転車 16インチ" badge="募集中" badgeBg={COLORS.accent} />
+        <MiniItem icon={Shirt} name="キッズ服（95cmサイズ）" badge="募集中" badgeBg={COLORS.accent} />
       </div>
-      <div className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[9px] font-bold" style={{ border: `1px solid ${COLORS.border}`, color: COLORS.ink }}>
-        <Link2 size={11} style={{ color: COLORS.indigo }} />
-        リンクをコピー
-      </div>
-      <p className="text-[8px] mt-3 text-center leading-relaxed" style={LABEL}>
-        URLを知っている人だけがアクセスできます
-      </p>
     </div>
   );
 }
 
-function MiniItem({ icon: Icon, name, badge, badgeBg, time }) {
+// 2. リストを友達にシェアする（前面：オーバーレイ＋共有シート。PhoneStageが独立レイヤーとして重ねる）
+function ShareOverlaySheet() {
+  return (
+    <>
+      <div className="absolute inset-0 backdrop-blur-[1px]" style={{ backgroundColor: 'rgba(0,0,0,0.32)' }} />
+      <div
+        className="absolute bottom-0 left-0 right-0 rounded-t-3xl px-3 pt-3 pb-3"
+        style={{ backgroundColor: '#fff', boxShadow: '0 -10px 24px rgba(0,0,0,0.18)' }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <p className="font-maru font-bold text-[10px]">このリストを共有しよう</p>
+          <X size={11} style={{ color: COLORS.inkSoft }} />
+        </div>
+        <div
+          className="rounded-lg px-2 py-1.5 mb-1.5 flex items-center justify-between gap-2"
+          style={{ backgroundColor: '#FCFBF8', border: `1px solid ${COLORS.border}` }}
+        >
+          <span className="text-[9px] font-bold truncate">子供用品をゆずります</span>
+          <Pencil size={9} style={{ color: COLORS.indigo, flexShrink: 0 }} />
+        </div>
+        <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 mb-1.5 text-[9px] font-bold" style={{ backgroundColor: COLORS.line, color: '#fff' }}>
+          <MessageCircle size={11} />
+          LINEで送る
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[9px] font-bold" style={{ border: `1px solid ${COLORS.border}`, color: COLORS.ink }}>
+          <Link2 size={11} style={{ color: COLORS.indigo }} />
+          リンクをコピー
+        </div>
+      </div>
+    </>
+  );
+}
+
+function MiniItem({ icon: Icon, name, badge, badgeBg, extra, time }) {
   return (
     <div className="flex items-center gap-2 py-1.5">
       <div className="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F0ECE2', color: COLORS.inkSoft }}>
@@ -425,10 +459,17 @@ function MiniItem({ icon: Icon, name, badge, badgeBg, time }) {
       </div>
       <div className="min-w-0">
         <p className="text-[9px] font-bold truncate">{name}</p>
-        <span className="inline-block rounded-full px-1.5 py-[1px] my-0.5 text-[7px] font-bold whitespace-nowrap text-white" style={{ backgroundColor: badgeBg }}>
-          {badge}
+        <span className="inline-flex items-center gap-1 my-0.5">
+          <span className="inline-block rounded-full px-1.5 py-[1px] text-[7px] font-bold whitespace-nowrap text-white" style={{ backgroundColor: badgeBg }}>
+            {badge}
+          </span>
+          {extra && (
+            <span className="inline-block rounded-full px-1.5 py-[1px] text-[7px] font-bold whitespace-nowrap" style={{ backgroundColor: COLORS.mossSoft, color: COLORS.moss }}>
+              {extra}
+            </span>
+          )}
         </span>
-        <p className="text-[7px]" style={LABEL}>{time}</p>
+        {time && <p className="text-[7px]" style={LABEL}>{time}</p>}
       </div>
     </div>
   );
@@ -481,7 +522,7 @@ function ScreenDone() {
 
 const STEPS = [
   { title: '譲りたいものを登録する', body: '写真・品名・状態を入れるだけ。/サクッと出品できます。', Screen: ScreenInput },
-  { title: 'リストを友達にシェアする', body: '作ったリストのURLをLINEなどでシェアするだけ。/URLを知っている人だけがアクセスできます。', Screen: ScreenShare },
+  { title: 'リストを友達にシェアする', body: '作ったリストのURLをLINEなどでシェアするだけ。/URLを知っている人だけがアクセスできます。', Screen: ScreenShare, OverlaySheet: ShareOverlaySheet },
   { title: '欲しい人がいたらマッチング', body: '欲しい人がいたらマッチングします。', Screen: ScreenMatching },
   { title: '譲ったらお譲り完了', body: '友達と連絡をとって、大切にしていたものを譲ろう。', Screen: ScreenDone },
 ];
@@ -491,10 +532,10 @@ export function StepsSection() {
     <section>
       <h2 className={`${H2_CLASS} mb-8`}>1分でわかる使い方</h2>
       <div className="space-y-12">
-        {STEPS.map(({ title, body, Screen }, i) => (
+        {STEPS.map(({ title, body, Screen, OverlaySheet }, i) => (
           <div key={title}>
             <h3 className="font-maru font-extrabold text-lg text-center mb-5">{i + 1}. {title}</h3>
-            <PhoneStage>
+            <PhoneStage overlaySheet={OverlaySheet ? <OverlaySheet /> : null}>
               <Screen />
             </PhoneStage>
             <p className="text-[15px] leading-relaxed mt-5" style={{ color: COLORS.ink }}>
