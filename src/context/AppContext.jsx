@@ -34,6 +34,7 @@ export function AppProvider({ children }) {
   const [newListTitle, setNewListTitle] = useState('');
   const [myLists, setMyLists] = useState([]);
   const [allListsPage, setAllListsPage] = useState(false);
+  const [page, setPage] = useState(null);
   const [showMyLists, setShowMyLists] = useState(false);
   const [showEmailLogin, setShowEmailLogin] = useState(false);
 
@@ -102,6 +103,9 @@ export function AppProvider({ children }) {
           setForcedGuest(guestMode);
         } else {
           if (params.get('mylists') === '1') setAllListsPage(true);
+          if (params.get('page') === 'privacy' || params.get('page') === 'terms') {
+            setPage(params.get('page'));  // ★追加
+          }
           try {
             const email = await getNotifyEmail(id);
             if (mounted) setNotifyEmail(email);
@@ -381,7 +385,7 @@ export function AppProvider({ children }) {
       await updateItemFields(item.id, { status: 'done' });
       setItems((cur) => cur.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it)));
       setViewItem((v) => (v && v.id === item.id ? { ...v, status: 'done' } : v));
-      showToast('お譲り確定にしました');
+      showToast('お譲り完了にしました');
     } catch (e) {
       showToast('更新に失敗しました');
     }
@@ -418,7 +422,7 @@ export function AppProvider({ children }) {
     isCreatorMode, deadlinePassed, doneCount,
     // リスト一覧・トップ
     creatingList, newListTitle, setNewListTitle, handleCreateList,
-    myLists, allListsPage, showMyLists, setShowMyLists,
+    myLists, allListsPage, showMyLists, setShowMyLists, page,
     // メール／ログイン
     showEmailLogin, setShowEmailLogin,
     notifyEmail, emailInput, setEmailInput, savingEmail, editingEmail, setEditingEmail,

@@ -6,12 +6,16 @@ import HomeScreen from './screens/HomeScreen.jsx';
 import NotFoundScreen from './screens/NotFoundScreen.jsx';
 import ListScreen from './screens/ListScreen.jsx';
 import AboutScreen from './screens/AboutScreen.jsx';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen.jsx'; {/* ★追加 */}
+import TermsScreen from './screens/TermsScreen.jsx'; 
 
 // どの画面を出すかだけを決める
 function Router() {
-  const { booting, allListsPage, currentListId, listLoading, listNotFound } = useApp();
+  const { booting, page, allListsPage, currentListId, listLoading, listNotFound } = useApp();
 
   if (booting) return <BootScreen />;
+  if (page === 'privacy') return <PrivacyPolicyScreen />;
+  if (page === 'terms') return <TermsScreen />;
   if (allListsPage) return <AllListsScreen />;
   if (!currentListId) return <HomeScreen />;
   if (!listLoading && listNotFound) return <NotFoundScreen />;

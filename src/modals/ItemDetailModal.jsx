@@ -1,35 +1,31 @@
-import React, { useState } from 'react'; // ★ useState を追加
-import { ChevronLeft, Package, Clock, Gift } from 'lucide-react'; // ★ Trash2 を消して Gift を追加
+import React from 'react';
+import { ChevronLeft, Package, Clock } from 'lucide-react';
 import { COLORS } from '../constants.js';
 import { timeAgo } from '../utils.js';
 import { useApp } from '../context/AppContext.jsx';
-import { FullScreen, CenterModal } from '../components/ModalShell.jsx'; // ★ CenterModal を追加
+import { FullScreen } from '../components/ModalShell.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
+import MatchedItemScreen from './MatchedItemScreen.jsx';
 
 // 商品の詳細
 export default function ItemDetailModal() {
   const {
     viewItem, setViewItem, isCreatorMode, deadlinePassed,
-    markDone, openEdit, openWantModal, // ★ ownerMenuOpen などを消して openEdit を追加
-    // requestDelete もここでは不要になった（削除は編集画面に移動）
+    openEdit, openWantModal,
   } = useApp();
 
-  // ★ 出品者がマッチング中の商品を開いた時は、最初からポップアップを出す
-  const [showMatchPopup, setShowMatchPopup] = useState(
-    isCreatorMode && viewItem.status === 'kept'
-  );
-
-  const claimer = viewItem.claimerName ? `${viewItem.claimerName}さん` : 'お相手';
+  // 出品者×マッチング中は専用画面に委譲
+  if (isCreatorMode && viewItem.status === 'kept') {
+    return <MatchedItemScreen />;
+  }
 
   return (
     <FullScreen>
-      {/* ヘッダー */}
       <div className="sticky top-0 flex items-center gap-3 px-4 py-3 border-b z-10" style={{ backgroundColor: 'rgba(250,248,243,0.95)', borderColor: COLORS.border }}>
         <button onClick={() => setViewItem(null)}><ChevronLeft size={22} /></button>
         <h2 className="font-maru font-bold text-base">商品の詳細</h2>
       </div>
 
-      {/* 本文 */}
       <div className="flex-1 overflow-y-auto">
         <div className="relative aspect-square" style={{ backgroundColor: '#F0ECE2' }}>
           {viewItem.image ? (
@@ -59,15 +55,11 @@ export default function ItemDetailModal() {
           {viewItem.description && (
             <p className="text-sm leading-relaxed" style={{ color: COLORS.ink }}>{viewItem.description}</p>
           )}
-
-          {/* ★ ここにあった「出品者メニュー」ブロックを丸ごと削除 */}
         </div>
       </div>
 
-      {/* 下のボタン */}
       <div className="px-4 py-3 border-t" style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}>
         {isCreatorMode ? (
-          // ★ 出品者：状態ごとにボタンを出し分け
           viewItem.status === 'open' ? (
             <button
               onClick={() => openEdit(viewItem)}
@@ -76,21 +68,12 @@ export default function ItemDetailModal() {
             >
               編集する
             </button>
-          ) : viewItem.status === 'kept' ? (
-            <button
-              onClick={() => setShowMatchPopup(true)}
-              className="w-full py-3.5 rounded-full font-bold text-sm shadow-sm active:scale-[0.98] transition-transform"
-              style={{ backgroundColor: COLORS.indigo, color: '#fff' }}
-            >
-              お譲り完了にする
-            </button>
           ) : (
             <div className="w-full py-3.5 rounded-full font-bold text-sm text-center" style={{ backgroundColor: '#F0ECE2', color: COLORS.inkSoft }}>
               お譲り済みです
             </div>
           )
         ) : deadlinePassed ? (
-          // ↓ ここから下（ゲスト向け）は変更なし
           <div className="w-full py-3.5 rounded-full font-bold text-sm text-center" style={{ backgroundColor: '#F0ECE2', color: COLORS.inkSoft }}>
             募集は終了しました
           </div>
@@ -116,33 +99,6 @@ export default function ItemDetailModal() {
           </div>
         )}
       </div>
-
-      {/* ★ 追加：出品者向けの「マッチング中」ポップアップ */}
-      {isCreatorMode && showMatchPopup && viewItem.status === 'kept' && (
-        <CenterModal onClose={() => setShowMatchPopup(false)} closable width="max-w-sm">
-          <div className="text-center pt-2">
-            <div
-              className="mx-auto mb-3 w-12 h-12 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: COLORS.indigoSoft, color: COLORS.indigo }}
-            >
-              <Gift size={22} />
-            </div>
-            <p className="font-maru font-bold text-base leading-relaxed mb-1">
-              {claimer}とマッチングしました！
-            </p>
-            <p className="text-sm leading-relaxed mb-5" style={{ color: COLORS.inkSoft }}>
-              連絡をしてお譲りしてください。
-            </p>
-            <button
-              onClick={() => markDone(viewItem)}
-              className="w-full py-3 rounded-full font-bold text-sm shadow-sm active:scale-[0.98] transition-transform"
-              style={{ backgroundColor: COLORS.moss, color: '#fff' }}
-            >
-              お譲り完了
-            </button>
-          </div>
-        </CenterModal>
-      )}
     </FullScreen>
   );
 }

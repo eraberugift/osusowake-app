@@ -10,12 +10,14 @@ import { FeaturesSection, ScenesSection, StepsSection } from '../components/Land
 import EmailLoginModal from '../modals/EmailLoginModal.jsx';
 import LogoutConfirmModal from '../modals/LogoutConfirmModal.jsx';
 
-// リンク先ができたら href を差し替えてください
+
+const CONTACT_FORM_URL = 'https://forms.gle/899KaPCoJJngBRaH8';
+
 const FOOTER_LINKS = [
-  { label: 'よくある質問', href: '#' },
-  { label: 'お問い合わせ', href: '#' },
-  { label: 'プライバシーポリシー', href: '#' },
-  { label: '利用規約', href: '#' },
+  // 「よくある質問」はページができるまで一旦非表示
+  { label: 'お問い合わせ', href: CONTACT_FORM_URL },
+  { label: 'プライバシーポリシー', href: `${topUrl()}?page=privacy` },
+  { label: '利用規約', href: `${topUrl()}?page=terms` },
   { label: '開発者の想い', href: `${topUrl()}?about=1` },
 ];
 
@@ -122,11 +124,12 @@ export default function HomeScreen() {
         {/* ---- 最後のCTA ---- */}
         <section className="text-center pb-14">
           <button
-            onClick={() => { setFormOpen(true); window.scrollTo({ top: 0 }); }}
-            className="w-full py-4 rounded-full font-bold text-lg shadow-sm active:scale-[0.98] transition-transform"
+            onClick={handleCreateList}
+            disabled={creatingList}
+            className="w-full py-4 rounded-full font-bold text-lg shadow-sm active:scale-[0.98] transition-transform disabled:opacity-70"
             style={{ backgroundColor: COLORS.accent, color: '#fff' }}
           >
-            はじめる
+            {creatingList ? '作成中…' : 'はじめる'}
           </button>
         </section>
       </main>

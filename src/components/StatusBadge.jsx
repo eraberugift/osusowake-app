@@ -5,7 +5,7 @@ export default function StatusBadge({ status, claimerName, size = 'sm' }) {
   const map = {
     open: { label: '募集中', bg: COLORS.accent, fg: '#fff' },
     kept: { label: claimerName ? `${claimerName}さんとマッチング中` : 'マッチング中', bg: COLORS.indigo, fg: '#fff' },
-    done: { label: 'お譲り確定', bg: COLORS.moss, fg: '#fff' },
+    done: { label: 'お譲り完了', bg: COLORS.moss, fg: '#fff' },
   };
   const s = map[status];
   return (
