@@ -308,8 +308,8 @@ function PhoneStage({ children, overlaySheet }) {
   return (
     <div className="relative w-full aspect-square overflow-hidden rounded-[2rem]" style={{ backgroundColor: COLORS.accent }}>
       <div
-        className="absolute left-1/2 top-[9%] bottom-0 w-[66%] -translate-x-1/2 rounded-t-[2rem] px-[6px] pt-[6px] pb-[6px]"
-  style={{ backgroundColor: '#1C1917' }}
+        className="absolute left-1/2 top-[9%] w-[66%] -translate-x-1/2 rounded-t-[2rem] px-[6px] pt-[6px]"
+        style={{ backgroundColor: '#1C1917', height: '100%' }}
       >
         {/* ↓ relative を追加 */}
         <div className="relative h-full rounded-t-[1.6rem] overflow-hidden px-3 pt-3 font-kaku" style={{ backgroundColor: '#fff', color: COLORS.ink }}>
