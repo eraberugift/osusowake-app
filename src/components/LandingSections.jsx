@@ -485,13 +485,13 @@ function ScreenMatching() {
       </div>
       <div className="divide-y" style={{ borderColor: COLORS.border }}>
         <div style={{ borderColor: COLORS.border }}>
-          <MiniItem icon={Bike} name="キッズ自転車 16インチ" badge="たなかさんとマッチング中" badgeBg={COLORS.indigo} time="2時間前に出品" />
+          <MiniItem icon={Bike} name="キッズ自転車 16インチ" badge="たなかさんとマッチング中" badgeBg={COLORS.indigo} />
         </div>
         <div style={{ borderColor: COLORS.border }}>
-          <MiniItem icon={Shirt} name="ワンピース（Mサイズ）" badge="募集中" badgeBg={COLORS.accent} time="3時間前に出品" />
+          <MiniItem icon={Shirt} name="キッズ服（95cmサイズ）" badge="さとうさんとマッチング中" badgeBg={COLORS.indigo} />
         </div>
         <div style={{ borderColor: COLORS.border }}>
-          <MiniItem icon={BookOpen} name="絵本セット" badge="募集中" badgeBg={COLORS.accent} time="1日前に出品" />
+          <MiniItem icon={BookOpen} name="絵本セット" badge="募集中" badgeBg={COLORS.accent} />
         </div>
       </div>
     </div>
@@ -523,8 +523,8 @@ function ScreenDone() {
 const STEPS = [
   { title: '譲りたいものを登録する', body: '写真・品名・状態を入れるだけ。/サクッと出品できます。', Screen: ScreenInput },
   { title: 'リストを友達にシェアする', body: '作ったリストのURLをLINEなどでシェアするだけ。/URLを知っている人だけがアクセスできます。', Screen: ScreenShare, OverlaySheet: ShareOverlaySheet },
-  { title: '欲しい人がいたらマッチング', body: '欲しい人がいたらマッチングします。', Screen: ScreenMatching },
-  { title: '譲ったらお譲り完了', body: '友達と連絡をとって、大切にしていたものを譲ろう。', Screen: ScreenDone },
+  { title: '欲しい人がいたらマッチング', body: '欲しい人がいたら、マッチング。/連絡をとって、大切にしていたものを譲りましょう。', Screen: ScreenMatching },
+  // { title: '譲ったらお譲り完了', body: '友達と連絡をとって、大切にしていたものを譲ろう。', Screen: ScreenDone },
 ];
 
 export function StepsSection() {
