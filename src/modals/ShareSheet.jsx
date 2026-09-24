@@ -84,8 +84,10 @@ export default function ShareSheet() {
           onLogout={() => setLogoutConfirmOpen(true)}
           helperText={
             <>
-              <p className="font-bold mb-1.5">📩 登録しておくともっと便利に</p>
-              <ul className="space-y-1">
+              <p className="font-maru font-bold text-sm mb-2" style={{ color: COLORS.ink }}>
+                📩 登録しておくともっと便利に
+              </p>
+              <ul className="space-y-1 mb-3">
                 <li className="flex items-start gap-1.5">
                   <span>✓</span>
                   <span>譲り先が見つかったら通知でお知らせします</span>

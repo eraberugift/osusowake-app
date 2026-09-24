@@ -25,7 +25,7 @@ export default function EmailBlock({
   return (
     <div>
       {helperText && (
-        <p className="text-[11px] mb-1.5 leading-relaxed" style={{ color: COLORS.inkSoft }}>{helperText}</p>
+        <div className="text-[11px] mb-1.5 leading-relaxed" style={{ color: COLORS.inkSoft }}>{helperText}</div>
       )}
       <div className="flex gap-2">
         <EmailInputWithHistory value={emailInput} onChange={setEmailInput} placeholder="メールアドレス（任意）" />
