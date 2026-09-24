@@ -354,7 +354,7 @@ export function AppProvider({ children }) {
 
   const shareUrl = currentListId ? listUrl(currentListId, { guest: true }) : window.location.href;
   const shareText = list?.title ? `${list.title}｜ゆずリス` : 'ゆずリスのリストを見てね';
-  const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+  const lineShareUrl = `https://line.me/R/share?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
 
   const copyLink = () => {
     navigator.clipboard?.writeText(shareUrl).catch(() => {});
