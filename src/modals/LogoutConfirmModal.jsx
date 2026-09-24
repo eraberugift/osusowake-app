@@ -9,7 +9,7 @@ export default function LogoutConfirmModal() {
     <CenterModal onClose={() => setLogoutConfirmOpen(false)}>
       <h3 className="font-bold text-sm mb-2">ログアウトしますか？</h3>
       <p className="text-xs mb-4" style={{ color: COLORS.inkSoft }}>
-        もう一度リストを見るには、登録したメールアドレスの入力が必要になります。
+        通知メールは届かなくなります。別の端末でリストを編集するには、登録したメールアドレスでのログインが必要です。
       </p>
       <div className="flex gap-2">
         <button

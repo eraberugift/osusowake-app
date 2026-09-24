@@ -70,7 +70,10 @@ export function AppProvider({ children }) {
   const toastTimer = useRef(null);
   const fileRef = useRef(null);
 
-  const isCreatorMode = !forcedGuest && list && myId && list.creatorId === myId;
+  const isMyDeviceList = !!list && getMyListIds().includes(list.id);
+  const isCreatorMode = !forcedGuest && !!list && (
+    (!!myId && list.creatorId === myId) || isMyDeviceList
+  );
   const deadlinePassed = list && isPastDeadline(list.deadline);
 
   const showToast = (msg, ms = 2600) => {
@@ -198,6 +201,7 @@ export function AppProvider({ children }) {
     setCreatingList(true);
     try {
       const l = await createList(myId, { title: newListTitle.trim() || defaultListTitle(), deadline: null });
+      addMyListId(l.id);
       window.location.href = listUrl(l.id);
     } catch (e) {
       showToast('作成に失敗しました');
