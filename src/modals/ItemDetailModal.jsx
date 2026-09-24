@@ -36,7 +36,11 @@ export default function ItemDetailModal() {
             </div>
           )}
           <div className="absolute top-3 left-3">
-            <StatusBadge status={viewItem.status} claimerName={viewItem.claimerName} size="lg" />
+            <StatusBadge
+              status={viewItem.status}
+              claimerName={isCreatorMode ? viewItem.claimerName : null}
+              size="lg"
+            />
           </div>
         </div>
 

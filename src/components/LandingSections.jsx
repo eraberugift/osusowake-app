@@ -424,7 +424,7 @@ function ShareOverlaySheet() {
     <>
       <div className="absolute inset-0 backdrop-blur-[1px]" style={{ backgroundColor: 'rgba(0,0,0,0.32)' }} />
       <div
-        className="relative rounded-t-3xl px-3 pt-3 pb-3"
+        className="relative rounded-t-3xl px-3 pt-3 pb-[25%]"
         style={{ backgroundColor: '#fff', boxShadow: '0 -10px 24px rgba(0,0,0,0.18)' }}
       >
         <div className="flex items-center justify-between mb-2">

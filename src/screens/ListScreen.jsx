@@ -103,7 +103,12 @@ export default function ListScreen() {
         ) : (
           <div className="rounded-xl overflow-hidden divide-y" style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}`, borderColor: COLORS.border }}>
             {items.map((item) => (
-              <ItemRow key={item.id} item={item} onClick={() => setViewItem(item)} />
+              <ItemRow
+                key={item.id}
+                item={item}
+                onClick={() => setViewItem(item)}
+                showClaimerName={isCreatorMode}
+              />
             ))}
           </div>
         )}

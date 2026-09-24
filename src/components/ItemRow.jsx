@@ -5,7 +5,7 @@ import { timeAgo } from '../utils.js';
 import StatusBadge from './StatusBadge.jsx';
 
 // アイテム一覧の1行
-export default function ItemRow({ item, onClick }) {
+export default function ItemRow({ item, onClick, showClaimerName = false }) {
   const dimmed = item.status === 'done' ? 0.45 : 1;
   return (
     <button
@@ -26,7 +26,10 @@ export default function ItemRow({ item, onClick }) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold truncate mb-1">{item.name}</p>
         <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-          <StatusBadge status={item.status} claimerName={item.claimerName} />
+          <StatusBadge
+            status={item.status}
+            claimerName={showClaimerName ? item.claimerName : null}
+          />
           <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: COLORS.mossSoft, color: COLORS.moss }}>
             {item.condition}
           </span>
