@@ -372,9 +372,17 @@ export function AppProvider({ children }) {
     }
   };
 
-  const shareUrl = currentListId ? listUrl(currentListId, { guest: true }) : window.location.href;
-  const shareText = list?.title ? `${list.title}｜ゆずリス` : 'ゆずリスのリストを見てね';
-  const lineShareUrl = `https://line.me/R/share?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
+    // 共有用のURL（/s/リストID）。末尾の v はアイテムの数で、
+  // 出品が増えたり減ったりしたらLINEのカードも新しく作り直されるようにするため
+  const openCount = items.filter((it) => it.status === 'open').length;
+  const shareUrl = currentListId
+    ? `${window.location.origin}/s/${currentListId}?v=${items.length}-${openCount}`
+    : window.location.href;
+  const shareText =
+    `「${list?.title || 'ゆずりたいものリスト'}」を作りました！\n` +
+    `欲しいものがあれば「これ欲しい！」を押してね👇\n` +
+    shareUrl;
+  const lineShareUrl = `https://line.me/R/share?text=${encodeURIComponent(shareText)}`;
 
   const copyLink = () => {
     navigator.clipboard?.writeText(shareUrl).catch(() => {});
