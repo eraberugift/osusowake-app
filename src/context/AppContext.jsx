@@ -3,6 +3,7 @@ import {
   getCurrentUserId, getMyId, setMyId,
   createList, fetchList, updateListTitle,
   getMyListIds, addMyListId, fetchListsByIds, fetchListsByCreator,
+  fetchListAdmin, getAdminKey, saveAdminKey,
   fetchItemsByList, insertItem, updateItemFields, updateItemContent, deleteItemRow, uploadItemImage,
   claimItem,
   loginOrRegisterWithEmail, getNotifyEmail, updateNotifyEmail, logout,
@@ -67,14 +68,13 @@ export function AppProvider({ children }) {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [showExample, setShowExample] = useState(false);
   const [forcedGuest, setForcedGuest] = useState(false);
+  const [isListAdmin, setIsListAdmin] = useState(false);
+  const [adminKey, setAdminKey] = useState(null);
 
   const toastTimer = useRef(null);
   const fileRef = useRef(null);
 
-  const isMyDeviceList = !!list && getMyListIds().includes(list.id);
-  const isCreatorMode = !forcedGuest && !!list && (
-    (!!myId && list.creatorId === myId) || isMyDeviceList
-  );
+  const isCreatorMode = !forcedGuest && !!list && isListAdmin;
   const deadlinePassed = list && isPastDeadline(list.deadline);
 
   const showToast = (msg, ms = 2600) => {
@@ -149,7 +149,26 @@ export function AppProvider({ children }) {
         setList(l);
         const its = await fetchItemsByList(currentListId);
         if (!mounted) return;
-        setItems(its);
+
+        // URLのキー → 端末に覚えたキー の順で使い、作成者か照合する
+        const urlKey = new URLSearchParams(window.location.search).get('key');
+        let admin = null;
+        try {
+          admin = await fetchListAdmin(currentListId, myId, urlKey || getAdminKey(currentListId));
+        } catch (_) {}
+        if (!mounted) return;
+
+        if (admin) {
+          saveAdminKey(currentListId, admin.adminKey);
+          addMyListId(currentListId); // トップの「あなたが作ったリスト」にも出す
+          setAdminKey(admin.adminKey);
+          setIsListAdmin(true);
+          setItems(its.map((it) => ({ ...it, claimerName: admin.claimers[it.id] ?? null })));
+        } else {
+          setAdminKey(null);
+          setIsListAdmin(false);
+          setItems(its);
+        }
 
         if (myId && l.creatorId === myId) {
           try {
@@ -362,6 +381,14 @@ export function AppProvider({ children }) {
     showToast('リンクをコピーしました！');
   };
 
+  const adminUrl = currentListId && adminKey ? listUrl(currentListId, { key: adminKey }) : null;
+
+  const copyAdminLink = () => {
+    if (!adminUrl) return;
+    navigator.clipboard?.writeText(adminUrl).catch(() => {});
+    showToast('管理用リンクをコピーしました。メモなどに保存してください', 3500);
+  };
+
   const openWantModal = (item) => {
     setModalItem(item);
     setModalStage(item.status === 'kept' || item.status === 'done' ? 'action' : 'name');
@@ -446,6 +473,7 @@ export function AppProvider({ children }) {
     showExample, setShowExample,
     // 共有・タイトル編集
     shareSheetOpen, setShareSheetOpen, shareUrl, lineShareUrl, copyLink,
+    adminUrl, copyAdminLink,
     titleEditing, setTitleEditing, titleInput, setTitleInput, savingTitle, handleSaveTitle,
     // アイテム詳細・操作
     viewItem, setViewItem, editingItem, openEdit,

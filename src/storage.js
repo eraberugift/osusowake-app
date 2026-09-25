@@ -24,6 +24,10 @@ export function getCurrentUserId() {
 
 // ------- リスト関連 -------
 
+// ゲストにも見せてよい列だけを指定する（admin_key / claimer_name は含めない）
+const LIST_COLUMNS = 'id, creator_id, title, deadline, created_at';
+const ITEM_COLUMNS = 'id, list_id, owner_id, name, condition, description, image, status, claimer_id, created_at';
+
 function rowToList(row) {
   return {
     id: row.id,
@@ -38,7 +42,7 @@ export async function createList(creatorId, { title, deadline }) {
   const { data, error } = await supabase
     .from('lists')
     .insert({ creator_id: creatorId, title: title || 'ゆずりたいものリスト', deadline: deadline || null })
-    .select()
+    .select(LIST_COLUMNS)
     .single();
 
   if (error) throw error;
@@ -48,7 +52,7 @@ export async function createList(creatorId, { title, deadline }) {
 export async function fetchList(listId) {
   const { data, error } = await supabase
     .from('lists')
-    .select('*')
+    .select(LIST_COLUMNS)
     .eq('id', listId)
     .maybeSingle();
 
@@ -93,7 +97,7 @@ export async function fetchListsByIds(ids) {
   if (!ids || ids.length === 0) return [];
   const { data, error } = await supabase
     .from('lists')
-    .select('*')
+    .select(LIST_COLUMNS)
     .in('id', ids);
 
   if (error) throw error;
@@ -104,12 +108,45 @@ export async function fetchListsByIds(ids) {
 export async function fetchListsByCreator(creatorId) {
   const { data, error } = await supabase
     .from('lists')
-    .select('*, items!inner(id)')
+    .select(`${LIST_COLUMNS}, items!inner(id)`)
     .eq('creator_id', creatorId)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
   return data.map(rowToList);
+}
+
+// 作成者かどうかを照合し、OKなら管理キーとマッチング相手の名前を受け取る
+export async function fetchListAdmin(listId, ownerId, key) {
+  const { data, error } = await supabase.rpc('get_list_admin', {
+    p_list_id: listId,
+    p_owner_id: ownerId || null,
+    p_key: key || null,
+  });
+  if (error) throw error;
+  if (!data) return null;
+  return { adminKey: data.admin_key, claimers: data.claimers || {} };
+}
+
+// この端末で覚えている管理キー（リストIDごと）
+const ADMIN_KEYS_KEY = 'osusowake-admin-keys';
+
+function getAdminKeys() {
+  try {
+    return JSON.parse(localStorage.getItem(ADMIN_KEYS_KEY)) || {};
+  } catch (_) {
+    return {};
+  }
+}
+
+export function getAdminKey(listId) {
+  return getAdminKeys()[listId] || null;
+}
+
+export function saveAdminKey(listId, key) {
+  const keys = getAdminKeys();
+  keys[listId] = key;
+  localStorage.setItem(ADMIN_KEYS_KEY, JSON.stringify(keys));
 }
 
 // ------- アイテム関連 -------
@@ -123,7 +160,7 @@ function rowToItem(row) {
     description: row.description,
     image: row.image,
     status: row.status,
-    claimerName: row.claimer_name,
+    claimerName: row.claimer_name ?? null,
     claimerId: row.claimer_id,   // ★これが入っている方を残す
     createdAt: new Date(row.created_at).getTime(),
     ownerId: row.owner_id,
@@ -133,7 +170,7 @@ function rowToItem(row) {
 export async function fetchItemsByList(listId) {
   const { data, error } = await supabase
     .from('items')
-    .select('*')
+    .select(ITEM_COLUMNS)
     .eq('list_id', listId)
     .order('created_at', { ascending: false });
 
@@ -153,7 +190,7 @@ export async function insertItem(listId, creatorId, item) {
       image: item.image,
       status: 'open',
     })
-    .select()
+    .select(ITEM_COLUMNS)
     .single();
 
   if (error) throw error;

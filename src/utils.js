@@ -49,6 +49,8 @@ export function topUrl() {
 }
 
 export function listUrl(id, opts = {}) {
-  const guestParam = opts.guest ? '&view=guest' : '';
-  return `${window.location.origin}${window.location.pathname}?list=${id}${guestParam}`;
+  const params = new URLSearchParams({ list: id });
+  if (opts.guest) params.set('view', 'guest');
+  if (opts.key) params.set('key', opts.key);
+  return `${window.location.origin}${window.location.pathname}?${params}`;
 }

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { MessageCircle, Link2, Pencil, Check } from 'lucide-react';
+import { MessageCircle, Link2, Pencil, Check, KeyRound } from 'lucide-react';
 import { COLORS } from '../constants.js';
 import { useApp } from '../context/AppContext.jsx';
 import { BottomSheet } from '../components/ModalShell.jsx';
@@ -10,7 +10,7 @@ export default function ShareSheet() {
   const {
     list, setShareSheetOpen,
     titleEditing, setTitleEditing, titleInput, setTitleInput, savingTitle, handleSaveTitle,
-    lineShareUrl, copyLink,
+    lineShareUrl, copyLink, adminUrl, copyAdminLink,
     notifyEmail, editingEmail, setEditingEmail, emailInput, setEmailInput, savingEmail,
     handleEmailSubmit, handleEmailUpdate, setLogoutConfirmOpen,
   } = useApp();
@@ -99,7 +99,7 @@ export default function ShareSheet() {
           href={lineShareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm shadow-sm active:scale-[0.98] transition-transform"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-full font-bold text-sm shadow-sm active:scale-[0.98] transition-transform"
           style={{ backgroundColor: COLORS.line, color: '#fff' }}
         >
           <MessageCircle size={18} />
@@ -111,9 +111,31 @@ export default function ShareSheet() {
           style={{ border: `1px solid ${COLORS.border}`, color: COLORS.ink }}
         >
           <Link2 size={18} color={COLORS.indigo} />
-          リンクをコピー
+          共有用リンクをコピー
         </button>
       </div>
+
+      {!notifyEmail && adminUrl && (
+        <div className="mb-5 p-3 rounded-xl" style={{ backgroundColor: COLORS.indigoSoft }}>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <p className="flex items-center gap-1.5 font-bold text-sm" style={{ color: COLORS.indigo }}>
+              <KeyRound size={15} />
+              あなた専用の管理リンク
+            </p>
+            <button
+              onClick={copyAdminLink}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full font-bold text-xs"
+              style={{ backgroundColor: COLORS.card, color: COLORS.indigo, border: `1px solid ${COLORS.indigo}` }}
+            >
+              コピー
+            </button>
+          </div>
+          <p className="text-[11px] leading-relaxed" style={{ color: COLORS.ink }}>
+            メモなどに保存しておくと、別の端末からも管理できます。
+            <span className="font-bold inline-block" style={{ color: COLORS.accentDeep }}>友達には送らないでください。</span>
+          </p>
+        </div>
+      )}
 
       <div className="pt-4 border-t" style={{ borderColor: COLORS.border }}>
         <EmailBlock
@@ -139,7 +161,7 @@ export default function ShareSheet() {
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span>✓</span>
-                  <span>リストが消えてしまう心配がありません</span>
+                  <span>管理用リンクを保存しなくても、リストが消えません</span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span>✓</span>
@@ -150,6 +172,7 @@ export default function ShareSheet() {
           }
         />
       </div>
+
     </BottomSheet>
   );
 }
