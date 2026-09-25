@@ -170,7 +170,7 @@ export function AppProvider({ children }) {
           setItems(its);
         }
 
-        if (myId && l.creatorId === myId) {
+        if (myId) {
           try {
             const email = await getNotifyEmail(myId);
             if (mounted) setNotifyEmail(email);
