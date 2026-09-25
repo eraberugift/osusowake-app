@@ -36,7 +36,7 @@ export default function ListScreen() {
             </p>
             <img src="/squirrels-logo.png" alt="" style={{ height: 32, width: 'auto', display: 'block' }} />
           </a>
-          {notifyEmail ? (
+          {isCreatorMode && (notifyEmail ? (
             <button
               onClick={() => setLogoutConfirmOpen(true)}
               className="flex items-center gap-1 text-xs font-bold"
@@ -53,7 +53,7 @@ export default function ListScreen() {
             >
               ログイン／登録
             </button>
-          )}
+          ))}
         </div>
       </header>
 
