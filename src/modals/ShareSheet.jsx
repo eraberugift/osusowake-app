@@ -94,7 +94,7 @@ export default function ShareSheet() {
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span>✓</span>
-                  <span>機種変更したり、Cookieを消しても続きを編集できます</span>
+                  <span>リストが消えてしまう心配がありません</span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span>✓</span>

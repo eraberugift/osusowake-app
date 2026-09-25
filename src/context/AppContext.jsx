@@ -4,6 +4,7 @@ import {
   createList, fetchList, updateListTitle,
   getMyListIds, addMyListId, fetchListsByIds, fetchListsByCreator,
   fetchItemsByList, insertItem, updateItemFields, updateItemContent, deleteItemRow, uploadItemImage,
+  claimItem,
   loginOrRegisterWithEmail, getNotifyEmail, updateNotifyEmail, logout,
   addEmailHistory
 } from '../storage.js';
@@ -373,14 +374,20 @@ export function AppProvider({ children }) {
       return;
     }
     try {
-      await updateItemFields(modalItem.id, { status: 'kept', claimerName: claimerInput.trim() });
+      await claimItem(modalItem.id, claimerInput.trim()); // ← ここを変更
       const patch = { status: 'kept', claimerName: claimerInput.trim() };
       setItems((cur) => cur.map((it) => (it.id === modalItem.id ? { ...it, ...patch } : it)));
       setModalItem({ ...modalItem, ...patch });
       setViewItem((v) => (v && v.id === modalItem.id ? { ...v, ...patch } : v));
       setModalStage('action');
     } catch (e) {
-      showToast('更新に失敗しました');
+      // ↓ ここを変更
+      if (e.message === 'ALREADY_CLAIMED') {
+        showToast('ほかの方がマッチングしました');
+        setModalItem(null);
+      } else {
+        showToast('更新に失敗しました');
+      }
     }
   };
 

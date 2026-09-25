@@ -124,6 +124,7 @@ function rowToItem(row) {
     image: row.image,
     status: row.status,
     claimerName: row.claimer_name,
+    claimerId: row.claimer_id,   // ★これが入っている方を残す
     createdAt: new Date(row.created_at).getTime(),
     ownerId: row.owner_id,
   };
@@ -163,8 +164,21 @@ export async function updateItemFields(id, patch) {
   const dbPatch = {};
   if (patch.status) dbPatch.status = patch.status;
   if (patch.claimerName !== undefined) dbPatch.claimer_name = patch.claimerName;
+  if (patch.claimerId !== undefined) dbPatch.claimer_id = patch.claimerId;
   const { error } = await supabase.from('items').update(dbPatch).eq('id', id);
   if (error) throw error;
+}
+
+export async function claimItem(id, claimerName) {
+  const { data, error } = await supabase
+    .from('items')
+    .update({ status: 'kept', claimer_name: claimerName })
+    .eq('id', id)
+    .eq('status', 'open')
+    .select('id');
+
+  if (error) throw error;
+  if (!data || data.length === 0) throw new Error('ALREADY_CLAIMED');
 }
 
 export async function updateItemContent(id, { name, condition, description, image }) {
@@ -244,6 +258,13 @@ export async function loginOrRegisterWithEmail(email, currentOwnerId) {
       .eq('creator_id', currentOwnerId);
 
     if (mergeListsError) throw mergeListsError;
+
+    const { error: mergeClaimsError } = await supabase
+      .from('items')
+      .update({ claimer_id: existing.owner_id })
+      .eq('claimer_id', currentOwnerId);
+
+    if (mergeClaimsError) throw mergeClaimsError;
 
     return existing.owner_id;
   }

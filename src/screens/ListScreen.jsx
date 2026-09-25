@@ -19,7 +19,7 @@ import EmailLoginModal from '../modals/EmailLoginModal.jsx';
 export default function ListScreen() {
   const {
     list, listLoading, items, isCreatorMode, deadlinePassed, notifyEmail,
-    setShareSheetOpen, setTitleInput, setFormOpen, setViewItem,
+    setShareSheetOpen, setTitleInput, setFormOpen, setViewItem, openWantModal,
     setLogoutConfirmOpen, setShowEmailLogin, showEmailLogin,
     formOpen, viewItem, shareSheetOpen, modalItem, confirmDelete, showExample, logoutConfirmOpen,
   } = useApp();
@@ -106,7 +106,11 @@ export default function ListScreen() {
               <ItemRow
                 key={item.id}
                 item={item}
-                onClick={() => setViewItem(item)}
+                onClick={() =>
+                  !isCreatorMode && item.status === 'kept'
+                    ? openWantModal(item)
+                    : setViewItem(item)
+                }
                 showClaimerName={isCreatorMode}
               />
             ))}
