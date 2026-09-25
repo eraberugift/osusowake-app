@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { MessageCircle, Link2, Pencil, Check } from 'lucide-react';
 import { COLORS } from '../constants.js';
 import { useApp } from '../context/AppContext.jsx';
@@ -15,37 +15,82 @@ export default function ShareSheet() {
     handleEmailSubmit, handleEmailUpdate, setLogoutConfirmOpen,
   } = useApp();
 
+  const titleRef = useRef(null);
+
+  // 保存が終わったらキーボードを閉じる
+  useEffect(() => {
+    if (!titleEditing) titleRef.current?.blur();
+  }, [titleEditing]);
+
   const close = () => { setShareSheetOpen(false); setTitleEditing(false); };
+
+  // ✏️タップで直接フォーカス（iPhoneでも1回でキーボードが出る）
+  const startTitleEdit = () => titleRef.current?.focus();
+
+  const onTitleFocus = (e) => {
+    setTitleEditing(true);
+    const len = e.target.value.length;
+    e.target.setSelectionRange(len, len); // カーソルを末尾に
+  };
+
+  const cancelTitleEdit = () => {
+    setTitleInput(list?.title || '');
+    setTitleEditing(false);
+  };
+
+  const saveTitle = () => {
+    if (savingTitle) return;
+    if (titleInput.trim() === (list?.title || '')) { cancelTitleEdit(); return; }
+    handleSaveTitle();
+  };
+
+  const onTitleKeyDown = (e) => {
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return; // 変換確定のEnterは無視
+    if (e.key === 'Enter') { e.preventDefault(); saveTitle(); }
+    else if (e.key === 'Escape') { e.preventDefault(); cancelTitleEdit(); }
+  };
+
+  // ボタンを押したときにフォーカスが外れてキャンセル扱いにならないようにする
+  const keepFocus = (e) => e.preventDefault();
+
 
   return (
     <BottomSheet onClose={close}>
       <h3 className="font-maru font-bold text-base mb-3 pr-6">このリストを共有しよう</h3>
 
-      <div className="mb-4 p-3 rounded-xl" style={{ backgroundColor: '#FCFBF8', border: `1px solid ${COLORS.border}` }}>
+      <p className="text-[11px] font-bold mb-1.5" style={{ color: COLORS.inkSoft }}>リスト名</p>
+      <div
+        className="mb-4 px-3 py-2.5 rounded-xl flex items-center gap-2 transition-colors"
+        style={{
+          backgroundColor: '#FCFBF8',
+          border: `1px solid ${titleEditing ? COLORS.accent : COLORS.border}`,
+        }}
+      >
+        <input
+          ref={titleRef}
+          value={titleInput}
+          onChange={(e) => setTitleInput(e.target.value)}
+          onFocus={onTitleFocus}
+          onBlur={cancelTitleEdit}
+          onKeyDown={onTitleKeyDown}
+          enterKeyHint="done"
+          aria-label="リスト名"
+          className="flex-1 min-w-0 bg-transparent outline-none font-bold text-base truncate"
+          style={{ color: COLORS.ink, padding: 0, border: 'none' }}
+        />
         {titleEditing ? (
-          <div className="flex gap-2">
-            <input
-              value={titleInput}
-              onChange={(e) => setTitleInput(e.target.value)}
-              className="flex-1 min-w-0 px-2 py-1.5 rounded-lg text-sm outline-none"
-              style={{ border: `1px solid ${COLORS.border}`, backgroundColor: '#fff' }}
-            />
-            <button
-              onClick={handleSaveTitle}
-              disabled={savingTitle}
-              className="flex items-center justify-center px-3 rounded-lg flex-shrink-0"
-              style={{ backgroundColor: COLORS.accent, color: '#fff' }}
-            >
-              <Check size={15} />
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <button onMouseDown={keepFocus} onClick={cancelTitleEdit} className="text-xs" style={{ color: COLORS.inkSoft }}>
+              キャンセル
+            </button>
+            <button onMouseDown={keepFocus} onClick={saveTitle} disabled={savingTitle} className="text-xs font-bold disabled:opacity-60" style={{ color: COLORS.accentDeep }}>
+              {savingTitle ? '保存中…' : '保存'}
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-bold truncate">{list?.title}</p>
-            <button onClick={() => setTitleEditing(true)} className="flex-shrink-0" style={{ color: COLORS.indigo }}>
-              <Pencil size={14} />
-            </button>
-          </div>
+          <button onClick={startTitleEdit} className="flex-shrink-0 p-1 -m-1" style={{ color: COLORS.indigo }} aria-label="リスト名を編集">
+            <Pencil size={14} />
+          </button>
         )}
       </div>
 
