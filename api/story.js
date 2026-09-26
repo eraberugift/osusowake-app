@@ -30,7 +30,7 @@ const C = {
   dot: '#EAC3AE',
 };
 
-const HEAD = 'おゆずりのお知らせ';
+const HEAD = 'もらってくれる人を探しています';
 const MSG1 = '大切にしてきたものを、';
 const MSG2 = '次に使ってくれる方へ。';
 const STUB1 = '欲しいものがあれば';
@@ -105,6 +105,10 @@ export default async function handler(req) {
   const shownTitle = shorten(title, 14);
   const pickNames = picks.map((it) => shorten(it.name, 6));
 
+  // 写真に出ていないアイテムの数（4つ以上あるとき「他◯品もあります」を出す）
+  const moreCount = open.length - picks.length;
+  const moreText = moreCount > 0 ? `他${moreCount}品もあります` : '';
+
   // ---- 部品 ----
   const frame = (inner, i) =>
     h('div', {
@@ -142,7 +146,7 @@ export default async function handler(req) {
   // ---- チケット上半分 ----
   const top = h('div', {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
-    backgroundColor: PAPER, padding: '64px 48px 48px',
+    width: CARD_W, backgroundColor: PAPER, padding: '64px 48px 48px',
     borderTopLeftRadius: 40, borderTopRightRadius: 40,
   }, [
     h('div', { display: 'flex', alignItems: 'center', gap: 18 }, [
@@ -150,10 +154,17 @@ export default async function handler(req) {
       h('div', { display: 'flex', fontFamily: 'Maru', fontSize: 30, letterSpacing: 10, color: C.accent }, INVITATION),
       smallDot(),
     ]),
-    h('div', { display: 'flex', fontFamily: 'Hand', fontSize: 50, color: C.accentDeep, marginTop: 14 }, HEAD),
+    h('div', { display: 'flex', fontFamily: 'Hand', fontSize: 44, color: C.accentDeep, marginTop: 14 }, HEAD),
     h('div', { display: 'flex', width: 480, height: 3, backgroundColor: C.line, margin: '32px 0' }),
     h('div', { display: 'flex', fontFamily: 'Maru', fontSize: 56, color: C.ink }, shownTitle),
     h('div', { display: 'flex', gap: 28, marginTop: 52 }, photos),
+    // 他にもアイテムがあるときの小さなラベル
+    ...(moreText
+      ? [h('div', {
+          display: 'flex', marginTop: 36, padding: '10px 32px', borderRadius: 999,
+          backgroundColor: C.accentSoft, color: C.accentDeep, fontFamily: 'Maru', fontSize: 32,
+        }, moreText)]
+      : []),
     h('div', {
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       fontFamily: 'Hand', fontSize: 40, lineHeight: 1.7, color: C.body, marginTop: 52,
@@ -163,7 +174,7 @@ export default async function handler(req) {
   // ---- 切り取り線（左右に半円の切り欠き） ----
   const perforation = h('div', {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    height: 56, backgroundColor: PAPER, position: 'relative',
+    width: CARD_W, height: 56, backgroundColor: PAPER, position: 'relative',
   }, [
     h('div', { position: 'absolute', left: -28, top: 0, width: 56, height: 56, borderRadius: 28, backgroundColor: BG }),
     h('div', { position: 'absolute', right: -28, top: 0, width: 56, height: 56, borderRadius: 28, backgroundColor: BG }),
@@ -174,8 +185,8 @@ export default async function handler(req) {
 
   // ---- 半券（QRコード） ----
   const stub = h('div', {
-    display: 'flex', alignItems: 'center', gap: 44,
-    backgroundColor: PAPER, padding: '36px 56px 56px',
+    display: 'flex', alignItems: 'center', gap: 40,
+    width: CARD_W, backgroundColor: PAPER, padding: '36px 56px 56px',
     borderBottomLeftRadius: 40, borderBottomRightRadius: 40,
   }, [
     {
@@ -186,7 +197,7 @@ export default async function handler(req) {
         style: { borderRadius: 16, border: `2px solid ${C.line}` },
       },
     },
-    h('div', { display: 'flex', flexDirection: 'column' }, [
+    h('div', { display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }, [
       h('div', { display: 'flex', fontFamily: 'Maru', fontSize: 34, lineHeight: 1.6, color: C.ink }, STUB1),
       h('div', { display: 'flex', fontFamily: 'Maru', fontSize: 34, lineHeight: 1.6, color: C.ink }, STUB2),
       h('div', { display: 'flex', fontFamily: 'Maru', fontSize: 44, color: C.accent, marginTop: 20 }, LOGO),
@@ -211,7 +222,7 @@ export default async function handler(req) {
     }, [top, perforation, stub]),
   ]);
 
-  const maruText = [INVITATION, shownTitle, STUB1, STUB2, LOGO, '…', ...pickNames].join('');
+  const maruText = [INVITATION, shownTitle, STUB1, STUB2, LOGO, moreText, '…', ...pickNames].join('');
   const handText = HEAD + MSG1 + MSG2;
   const fonts = [];
   try {
