@@ -373,11 +373,15 @@ export function AppProvider({ children }) {
   };
 
   // 共有用のURL（/s/リストID）
-  // v はカードの作り直し用。デザインを変えたら CARD_VERSION の数字を1つ上げる
-  const CARD_VERSION = 2;
+  // v はカードの作り直し用。アイテム数やタイトルが変わるとURLも変わり、
+  // LINEが新しいカードを読み込み直す。デザインを変えたら CARD_VERSION を1つ上げる
+  const CARD_VERSION = 3;
   const openCount = items.filter((it) => it.status === 'open').length;
+  const titleHash = [...(list?.title || '')]
+    .reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 0)
+    .toString(36);
   const shareUrl = currentListId
-    ? `${window.location.origin}/s/${currentListId}?v=${CARD_VERSION}-${items.length}-${openCount}`
+    ? `${window.location.origin}/s/${currentListId}?v=${CARD_VERSION}-${items.length}-${openCount}-${titleHash}`
     : window.location.href;
   const shareText =
     '大切に使っていたけれど、使わなくなったものをリストにしました。\n' +

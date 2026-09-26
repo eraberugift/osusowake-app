@@ -131,8 +131,8 @@ export default function ShareSheet() {
             </button>
           </div>
           <p className="text-[11px] leading-relaxed" style={{ color: COLORS.ink }}>
-            メモなどに保存しておくと、別の端末からも管理できます。
-            <span className="font-bold inline-block" style={{ color: COLORS.accentDeep }}>友達には送らないでください。</span>
+            メモなどに保存しておいてください。<br/>このリンクがあれば、もしデータが消えてもリストを編集できます。
+            <span className="font-bold inline-block" style={{ color: COLORS.accentDeep }}>友達には送らないでください。<br/>シークレットモードの方は必ず保存してください。</span>
           </p>
         </div>
       )}

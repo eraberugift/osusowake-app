@@ -50,10 +50,11 @@ export default async function handler(req) {
 
   const pageTitle = `${title}｜ゆずリス`;
   // カードの下に出る説明文（やさしい「おゆずり」の雰囲気で）
+  // 写真は最大3枚なので、それより多いときだけ残りの数を添える
+  const moreCount = openCount - 3;
   const description =
-    openCount > 0
-      ? `${names.join('、')}など。大切にしてきたものを、次に使ってくれる方へおゆずりします。`
-      : '大切にしてきたものを、次に使ってくれる方へおゆずりするリストです。';
+    '大切にしてきたものを、次に使ってくれる方へおゆずりします。' +
+    (moreCount > 0 ? `写真の他にもあります。` : '');
 
   const listPage = `${origin}/?list=${id}&view=guest`;
   const shareUrl = `${origin}/s/${id}${v ? `?v=${encodeURIComponent(v)}` : ''}`;
