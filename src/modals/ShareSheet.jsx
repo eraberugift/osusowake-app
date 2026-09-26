@@ -6,9 +6,17 @@ import { BottomSheet, CenterModal } from '../components/ModalShell.jsx';
 
 // ストーリーズに投稿するまでの流れ（案内に表示）
 const STORY_STEPS = [
-  '共有メニューでInstagramを選び、「ストーリーズ」をタップ',
-  'スタンプの「リンク」を選んで、貼り付け（リンクはコピー済みです）',
-  '好きな場所に置いて、投稿！',
+  {
+    text: '出てきたアプリの一覧から「Instagram」→「ストーリーズ」を選ぶ',
+    note: '見当たらないときは、一覧を右にスクロールするか「その他」から',
+  },
+  {
+    text: 'スタンプ →「リンク」を選んで貼り付ける（任意）',
+    note: 'リンクは自動でコピーされます。貼らなくても、画像のQRコードから見てもらえます',
+  },
+  {
+    text: '好きな位置に置いて、投稿する',
+  },
 ];
 import EmailBlock from '../components/EmailBlock.jsx';
 
@@ -225,32 +233,36 @@ export default function ShareSheet() {
       {/* ---- ストーリーズの案内（アイコンを押したときだけ出る） ---- */}
       {storyGuideOpen && (
         <CenterModal onClose={() => setStoryGuideOpen(false)} closable>
-          <h3 className="font-maru font-bold text-base mb-1 pr-6">ストーリーズでシェア</h3>
-          <p className="text-xs mb-4" style={{ color: COLORS.inkSoft }}>
-            招待状の画像つきで、インスタが開きます
+          <h3 className="font-maru font-bold text-base mb-1 pr-6">インスタのストーリーズでシェア</h3>
+          <p className="text-xs leading-relaxed mb-4" style={{ color: COLORS.inkSoft }}>
+            ゆずリスが作った画像を、そのままストーリーズに載せられます
           </p>
-          <ol className="space-y-2.5 mb-5">
+
+          <ol className="space-y-3 mb-5">
             {STORY_STEPS.map((s, i) => (
-              <li key={s} className="flex items-start gap-2.5 text-sm leading-relaxed" style={{ color: COLORS.ink }}>
+              <li key={s.text} className="flex items-start gap-2.5">
                 <span
                   className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                   style={{ backgroundColor: COLORS.accentSoft, color: COLORS.accentDeep }}
                 >
                   {i + 1}
                 </span>
-                <span>{s}</span>
+                <div className="pt-0.5">
+                  <p className="text-sm font-bold leading-relaxed" style={{ color: COLORS.ink }}>{s.text}</p>
+                  {s.note && (
+                    <p className="text-xs leading-relaxed mt-0.5" style={{ color: COLORS.inkSoft }}>{s.note}</p>
+                  )}
+                </div>
               </li>
             ))}
           </ol>
-          <p className="text-[11px] mb-4 leading-relaxed" style={{ color: COLORS.inkSoft }}>
-            リンクを貼らなくても、画像のQRコードからリストを開けます
-          </p>
+
           <button
             onClick={startStoryShare}
             className="w-full py-3 rounded-full font-bold text-sm active:scale-[0.98] transition-transform"
             style={{ backgroundColor: COLORS.accent, color: '#fff' }}
           >
-            OK、インスタを開く
+            画像をシェアする
           </button>
         </CenterModal>
       )}
