@@ -402,7 +402,7 @@ export function AppProvider({ children }) {
     openItems.length > 0 ? `${pickNames}${openItems.length > 3 ? `など${openItems.length}点` : ''}` : null,
     '欲しいものがあれば「これ欲しい！」で教えてね',
   ].filter(Boolean).join('\n');
-  const xShareUrl = `https://x.com/intent/post?text=${encodeURIComponent(xText)}&url=${encodeURIComponent(shareUrl)}`;
+    const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(xText)}&url=${encodeURIComponent(shareUrl)}`;
 
   // Instagramストーリーズ
   // iPhoneは「タップした瞬間」に共有しないと失敗するので、画像は共有シートを開いた時点で先に読み込んでおく
