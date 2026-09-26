@@ -143,7 +143,7 @@ export default function ShareSheet() {
         <ShareIcon label="LINE" bg={COLORS.line} href={lineShareUrl}>
           <MessageCircle size={24} />
         </ShareIcon>
-        <ShareIcon label="X" bg="#000" href={xShareUrl} newTab>
+        <ShareIcon label="X" bg="#000" href={xShareUrl}>
           <XLogo size={22} />
         </ShareIcon>
         <ShareIcon
