@@ -161,6 +161,13 @@ export function AppProvider({ children }) {
         if (admin) {
           saveAdminKey(currentListId, admin.adminKey);
           addMyListId(currentListId); // トップの「あなたが作ったリスト」にも出す
+
+          if (urlKey) {
+            const p = new URLSearchParams(window.location.search);
+            p.delete('key');
+            window.history.replaceState(null, '', `${window.location.pathname}?${p.toString()}`);
+          }
+
           setAdminKey(admin.adminKey);
           setIsListAdmin(true);
           setItems(its.map((it) => ({ ...it, claimerName: admin.claimers[it.id] ?? null })));
