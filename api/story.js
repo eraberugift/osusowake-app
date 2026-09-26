@@ -1,8 +1,10 @@
 import { ImageResponse } from '@vercel/og';
 import qrcode from 'qrcode-generator';
+import { SAMPLE } from './_sample.js';
 
 // Instagramストーリーズ用の縦長画像（1080×1920）を作る
 // 使い方：/api/story?id=リストID
+//         /api/story?sample=1 で、共有シートのプレビューに使う「見本」を作る
 // デザイン：1枚のカードに、写真を「大1枚＋小2枚」散らして置く。下にQRコード
 export const config = { runtime: 'edge' };
 
@@ -90,12 +92,17 @@ const maru = (text, size, weight, color, extra = {}) =>
 export default async function handler(req) {
   const url = new URL(req.url);
   const id = url.searchParams.get('id') || '';
+  const isSample = url.searchParams.get('sample') === '1';
 
   // タイトルが初期値のままなら、やさしい固定の文言にする
   let title = 'わたしのおゆずりしたいもの';
   let items = [];
 
-  if (/^[0-9a-f-]{36}$/i.test(id)) {
+  if (isSample) {
+    // 見本：ダミーのリスト名と、シルエット画像のアイテム
+    title = SAMPLE.title;
+    items = SAMPLE.items;
+  } else if (/^[0-9a-f-]{36}$/i.test(id)) {
     try {
       const [lists, its] = await Promise.all([
         fromSupabase(`lists?id=eq.${id}&select=title`),
@@ -153,7 +160,8 @@ export default async function handler(req) {
     {
       type: 'img',
       props: {
-        src: qrDataUrl(`${url.origin}/s/${id}`),
+        // 見本のQRコードは、ゆずリスのトップページにつなげておく
+        src: qrDataUrl(isSample ? `${url.origin}/` : `${url.origin}/s/${id}`),
         width: 160, height: 160,
         style: { borderRadius: 16, border: `2px solid ${C.line}` },
       },
@@ -213,6 +221,11 @@ export default async function handler(req) {
     width: W,
     height: H,
     fonts,
-    headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' },
+    // 見本は中身が変わらないので長めに覚えさせて、2回目以降はすぐ表示されるようにする
+    headers: {
+      'Cache-Control': isSample
+        ? 'public, max-age=86400, s-maxage=604800'
+        : 'public, max-age=300, s-maxage=300',
+    },
   });
 }

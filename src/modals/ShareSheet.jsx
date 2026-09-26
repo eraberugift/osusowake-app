@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { MessageCircle, Link2, Pencil, KeyRound, Instagram } from 'lucide-react';
+import { MessageCircle, Link2, Pencil, KeyRound, Instagram, ChevronRight, Loader2 } from 'lucide-react';
 import { COLORS } from '../constants.js';
 import { useApp } from '../context/AppContext.jsx';
 import { BottomSheet, CenterModal } from '../components/ModalShell.jsx';
+import EmailBlock from '../components/EmailBlock.jsx';
 
 // ストーリーズに投稿するまでの流れ（案内に表示）
 const STORY_STEPS = [
@@ -18,7 +19,13 @@ const STORY_STEPS = [
     text: '好きな位置に置いて、投稿する',
   },
 ];
-import EmailBlock from '../components/EmailBlock.jsx';
+
+// プレビューに使う見本（本番のVercelで作る固定の画像）
+// 手元の開発画面（localhost）でも表示できるように、本番のURLを直接指定している
+const SAMPLE_ORIGIN = 'https://yuzulist-app.vercel.app';
+const SAMPLE_LINE_IMAGE = `${SAMPLE_ORIGIN}/api/og?sample=1`;
+const SAMPLE_STORY_IMAGE = `${SAMPLE_ORIGIN}/api/story?sample=1`;
+const SAMPLE_TITLE = '子供用品をゆずります'; // api/_sample.js の title と同じにする
 
 // Xのロゴ（lucideに無いので自前のSVG）
 function XLogo({ size = 22 }) {
@@ -26,6 +33,42 @@ function XLogo({ size = 22 }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
+  );
+}
+
+// プレビュー画像（読み込み中・失敗時の見た目をそろえる）
+function PreviewImage({ src, alt, aspect, bg }) {
+  const [state, setState] = useState('loading'); // loading | loaded | error
+  useEffect(() => { setState('loading'); }, [src]);
+
+  return (
+    <div className="relative w-full overflow-hidden" style={{ aspectRatio: aspect, backgroundColor: bg }}>
+      {src && state !== 'error' && (
+        <img
+          src={src}
+          alt={alt}
+          onLoad={() => setState('loaded')}
+          onError={() => setState('error')}
+          className="w-full h-full object-cover transition-opacity duration-300"
+          style={{ opacity: state === 'loaded' ? 1 : 0 }}
+        />
+      )}
+      {state !== 'loaded' && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-2 text-center">
+          {state === 'loading' ? (
+            <>
+              <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'rgba(255,255,255,0.45)' }} />
+              <Loader2 size={16} className="relative animate-spin" style={{ color: COLORS.inkSoft }} />
+              <span className="relative text-[10px]" style={{ color: COLORS.inkSoft }}>読み込み中…</span>
+            </>
+          ) : (
+            <span className="text-[10px] leading-relaxed" style={{ color: COLORS.inkSoft }}>
+              プレビューを<br />表示できませんでした
+            </span>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -57,14 +100,16 @@ export default function ShareSheet() {
     list, setShareSheetOpen,
     titleEditing, setTitleEditing, titleInput, setTitleInput, savingTitle, handleSaveTitle,
     lineShareUrl, xShareUrl, shareToInstagram, copyLink, adminUrl, copyAdminLink,
+    shareUrl, lineMessage,
     notifyEmail, editingEmail, setEditingEmail, emailInput, setEmailInput, savingEmail,
     handleEmailSubmit, handleEmailUpdate, setLogoutConfirmOpen,
   } = useApp();
 
   const titleRef = useRef(null);
   const [storyGuideOpen, setStoryGuideOpen] = useState(false);
+  const [linePreviewOpen, setLinePreviewOpen] = useState(false);
 
-  // 案内の「OK」を押した瞬間に共有メニューを開く（iPhoneはこのタイミングでないと開けない）
+  // 案内の「画像をシェアする」を押した瞬間に共有メニューを開く（iPhoneはこのタイミングでないと開けない）
   const startStoryShare = () => {
     setStoryGuideOpen(false);
     shareToInstagram();
@@ -147,7 +192,7 @@ export default function ShareSheet() {
       </div>
 
       {/* ---- 共有先のアイコン：LINE → X → Instagram ---- */}
-      <div className="flex justify-center gap-2 mb-2">
+      <div className="flex justify-center gap-2">
         <ShareIcon label="LINE" bg={COLORS.line} href={lineShareUrl}>
           <MessageCircle size={24} />
         </ShareIcon>
@@ -162,6 +207,17 @@ export default function ShareSheet() {
           <Instagram size={24} />
         </ShareIcon>
       </div>
+
+      {/* LINEは送る前に確認できないので、見たい人だけ見られるように */}
+      <button
+        onClick={() => setLinePreviewOpen(true)}
+        className="mx-auto mt-3 flex items-center gap-0.5 text-xs font-bold"
+        style={{ color: COLORS.indigo }}
+      >
+        <span className="underline underline-offset-2">LINEでどう届くか見てみる</span>
+        <ChevronRight size={13} />
+      </button>
+
       <button
         onClick={copyLink}
         className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full font-bold text-sm mt-4 mb-5"
@@ -230,13 +286,69 @@ export default function ShareSheet() {
         />
       </div>
 
+      {/* ---- LINEの届き方のプレビュー ---- */}
+      {linePreviewOpen && (
+        <CenterModal onClose={() => setLinePreviewOpen(false)} closable width="max-w-sm">
+          <h3 className="font-maru font-bold text-base mb-0.5 pr-6">友達にはこう届きます</h3>
+          <p className="text-xs mb-3" style={{ color: COLORS.inkSoft }}>LINEで送ったときの見え方です</p>
+
+          {/* LINEのトーク画面風 */}
+          <div className="rounded-xl p-2.5 pl-8 mb-4 flex flex-col items-end gap-1.5" style={{ backgroundColor: '#EEF2F7' }}>
+            <div
+              className="text-xs leading-relaxed px-3 py-2 whitespace-pre-line break-all"
+              style={{ backgroundColor: '#8DE055', color: '#1F2A10', borderRadius: '14px 14px 4px 14px' }}
+            >
+              {lineMessage}
+              {'\n'}
+              <span className="underline" style={{ color: '#1E4FA0' }}>{window.location.origin}/s/…</span>
+            </div>
+            <div className="w-[88%] rounded-xl overflow-hidden" style={{ backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+              <PreviewImage src={SAMPLE_LINE_IMAGE} alt="LINEに表示されるカードの見本" aspect="1200 / 630" bg="#FFF8F0" />
+              <div className="px-2.5 py-2">
+                <p className="text-[11px] font-bold truncate" style={{ color: COLORS.ink }}>{SAMPLE_TITLE}｜ゆずリス</p>
+                <p className="text-[10px]" style={{ color: COLORS.inkSoft }}>{window.location.host}</p>
+              </div>
+            </div>
+          </div>
+          <p className="text-[10px] text-center -mt-2 mb-4" style={{ color: COLORS.inkSoft }}>
+            ※画像は見本です。実際はあなたのリストの写真とリスト名が入ります
+          </p>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setLinePreviewOpen(false)}
+              className="flex-1 py-3 rounded-full text-sm font-bold"
+              style={{ border: `1px solid ${COLORS.border}`, color: COLORS.inkSoft }}
+            >
+              閉じる
+            </button>
+            <a
+              href={lineShareUrl}
+              onClick={() => setLinePreviewOpen(false)}
+              className="flex-1 py-3 rounded-full text-sm font-bold text-center active:scale-[0.98] transition-transform"
+              style={{ backgroundColor: COLORS.line, color: '#fff' }}
+            >
+              LINEで送る
+            </a>
+          </div>
+        </CenterModal>
+      )}
+
       {/* ---- ストーリーズの案内（アイコンを押したときだけ出る） ---- */}
       {storyGuideOpen && (
         <CenterModal onClose={() => setStoryGuideOpen(false)} closable>
           <h3 className="font-maru font-bold text-base mb-1 pr-6">インスタのストーリーズでシェア</h3>
-          <p className="text-xs leading-relaxed mb-4" style={{ color: COLORS.inkSoft }}>
+          <p className="text-xs leading-relaxed mb-3" style={{ color: COLORS.inkSoft }}>
             ゆずリスが作った画像を、そのままストーリーズに載せられます
           </p>
+
+          {/* 投稿される画像の見本 */}
+          <div
+            className="mx-auto mb-4 w-24 rounded-lg overflow-hidden"
+            style={{ boxShadow: '0 4px 12px rgba(120,80,50,0.18)' }}
+          >
+            <PreviewImage src={SAMPLE_STORY_IMAGE} alt="ストーリーズに載る画像の見本" aspect="9 / 16" bg="#F3D5C3" />
+          </div>
 
           <ol className="space-y-3 mb-5">
             {STORY_STEPS.map((s, i) => (

@@ -1,7 +1,9 @@
 import { ImageResponse } from '@vercel/og';
+import { SAMPLE } from './_sample.js';
 
 // LINEなどのプレビューカード用の画像（1200×630）を作る
 // 使い方：/api/og?id=リストID
+//         /api/og?sample=1 で、共有シートのプレビューに使う「見本」を作る
 // デザイン：クリーム色の便箋に、白いフチの写真を少し傾けて並べる
 export const config = { runtime: 'edge' };
 
@@ -61,14 +63,20 @@ async function addFont(fonts, name, family, weight, text) {
 const shorten = (s, n) => (s.length > n ? s.slice(0, n) + '…' : s);
 
 export default async function handler(req) {
-  const id = new URL(req.url).searchParams.get('id') || '';
+  const params = new URL(req.url).searchParams;
+  const id = params.get('id') || '';
+  const isSample = params.get('sample') === '1';
 
   // タイトルが初期値のままなら、やさしい固定の文言にする
   let title = 'わたしのおゆずりしたいもの';
   let items = [];
 
-  // IDの形が正しいときだけSupabaseに問い合わせる
-  if (/^[0-9a-f-]{36}$/i.test(id)) {
+  if (isSample) {
+    // 見本：ダミーのリスト名と、シルエット画像のアイテム
+    title = SAMPLE.title;
+    items = SAMPLE.items;
+  } else if (/^[0-9a-f-]{36}$/i.test(id)) {
+    // IDの形が正しいときだけSupabaseに問い合わせる
     try {
       const [lists, its] = await Promise.all([
         fromSupabase(`lists?id=eq.${id}&select=title`),
@@ -146,6 +154,11 @@ export default async function handler(req) {
     width: W,
     height: H,
     fonts,
-    headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' },
+    // 見本は中身が変わらないので長めに覚えさせて、2回目以降はすぐ表示されるようにする
+    headers: {
+      'Cache-Control': isSample
+        ? 'public, max-age=86400, s-maxage=604800'
+        : 'public, max-age=300, s-maxage=300',
+    },
   });
 }

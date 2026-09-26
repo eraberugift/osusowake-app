@@ -385,13 +385,17 @@ export function AppProvider({ children }) {
     ? `${window.location.origin}/s/${currentListId}?v=${shareVersion}`
     : window.location.href;
 
-  // LINE
-  const shareText =
+  // LINE（lineMessage はプレビューにも使うので、URLとは分けておく）
+  const lineMessage =
     '大切に使っていたけれど、使わなくなったものをリストにしました。\n' +
-    '欲しいものがあれば「これ欲しい！」ボタンで教えてね\n' +
-    shareUrl;
+    '欲しいものがあれば「これ欲しい！」ボタンで教えてね';
+  const shareText = `${lineMessage}\n${shareUrl}`;
   const lineShareUrl = `https://line.me/R/share?text=${encodeURIComponent(shareText)}`;
-
+  // LINEのカードに出る画像（プレビュー用）
+  const ogImageUrl = currentListId
+    ? `${window.location.origin}/api/og?id=${currentListId}&v=${shareVersion}`
+    : null;
+  
   // X（リストの中身から文章を自動で作る）
   const displayTitle =
     !list?.title || list.title === 'ゆずりたいものリスト' ? 'わたしのおゆずりしたいもの' : list.title;
@@ -541,6 +545,7 @@ export function AppProvider({ children }) {
     showExample, setShowExample,
     // 共有・タイトル編集
     shareSheetOpen, setShareSheetOpen, shareUrl, lineShareUrl, xShareUrl, shareToInstagram, copyLink,
+    lineMessage, ogImageUrl, storyImageUrl, displayTitle,
     adminUrl, copyAdminLink,
     titleEditing, setTitleEditing, titleInput, setTitleInput, savingTitle, handleSaveTitle,
     // アイテム詳細・操作
