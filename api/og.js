@@ -29,7 +29,7 @@ const C = {
   frameLine: '#EFE2D6',
 };
 
-const TAGLINE = '大切にしてきたものを、おゆずりします';
+const TAGLINE = '誰か欲しい人いるかな？';
 const LOGO = 'ゆずリス';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;

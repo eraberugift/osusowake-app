@@ -53,7 +53,7 @@ export default async function handler(req) {
   // 写真は最大3枚なので、それより多いときだけ残りの数を添える
   const moreCount = openCount - 3;
   const description =
-    '大切にしてきたものを、次に使ってくれる方へおゆずりします。' +
+    '大事に使ってたものだよ。よかったらもらってね。' +
     (moreCount > 0 ? `他${moreCount}品` : '');
 
   const listPage = `${origin}/?list=${id}&view=guest`;

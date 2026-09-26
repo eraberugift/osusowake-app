@@ -31,8 +31,8 @@ const C = {
   line: '#EBD8C8',
 };
 
-const HEAD = 'もらってくれる人を探しています';
-const MSG = '大切にしてきたものを、次に使ってくれる方へ。';
+const HEAD = '誰か欲しい人いるかな？';
+const MSG = '大事に使ってたものだよ。よかったらもらってね';
 const STUB1 = '欲しいものがあれば';
 const STUB2 = '「これ欲しい！」で教えてね';
 const LOGO = 'ゆずリス';
