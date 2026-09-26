@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shirt, Bike, BookOpen, MessageCircle, Link2, Pencil, X } from 'lucide-react';
+import { Shirt, Bike, BookOpen, MessageCircle, Link2, Pencil, X, Instagram } from 'lucide-react';
 import { COLORS, CONDITIONS } from '../constants.js';
 
 // トップページ（HomeScreen）の下半分：特長・シーン・使い方
@@ -331,31 +331,16 @@ function PhoneStage({ children, overlaySheet }) {
   );
 }
 
-// キッズ服（パフスリーブワンピース）のシンプルなイラスト。写真未登録時のサンプル表示に使う
+// キッズ服（ワンピース）のシルエット。共有画像の見本（api/_sample.js）と同じ形・色にそろえている
 function KidsClothingIllustration() {
   return (
-    <svg viewBox="0 0 100 100" width="55%" height="55%" role="img" aria-label="キッズ服のイラスト">
-      {/* パフスリーブ */}
-      <circle cx="24" cy="34" r="10" fill={COLORS.accent} stroke={COLORS.ink} strokeWidth="3" />
-      <circle cx="76" cy="34" r="10" fill={COLORS.accent} stroke={COLORS.ink} strokeWidth="3" />
-      {/* 本体（Aラインワンピース） */}
+    <svg viewBox="0 0 100 100" width="70%" height="70%" role="img" aria-label="キッズ服のイラスト">
+      <circle cx="27" cy="31" r="8" fill="#E9A58F" />
+      <circle cx="73" cy="31" r="8" fill="#E9A58F" />
       <path
-        d="M34,26 C27,29 23,35 26,42 L18,84 Q50,92 82,84 L74,42 C77,35 73,29 66,26 Q50,40 34,26 Z"
-        fill={COLORS.accent}
-        stroke={COLORS.ink}
-        strokeWidth="3"
-        strokeLinejoin="round"
+        d="M36 24 C30 27 27 32 29 38 L20 80 Q50 88 80 80 L71 38 C73 32 70 27 64 24 Q50 36 36 24 Z"
+        fill="#E9A58F"
       />
-      {/* 胸元のリボン */}
-      <path d="M50,34 L40,28 L40,40 Z" fill={COLORS.moss} stroke={COLORS.ink} strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M50,34 L60,28 L60,40 Z" fill={COLORS.moss} stroke={COLORS.ink} strokeWidth="1.6" strokeLinejoin="round" />
-      <circle cx="50" cy="34" r="3.4" fill={COLORS.moss} stroke={COLORS.ink} strokeWidth="1.6" />
-      {/* 水玉 */}
-      <circle cx="38" cy="58" r="3.2" fill={COLORS.accentSoft} />
-      <circle cx="62" cy="58" r="3.2" fill={COLORS.accentSoft} />
-      <circle cx="50" cy="70" r="3.2" fill={COLORS.accentSoft} />
-      <circle cx="34" cy="80" r="3.2" fill={COLORS.accentSoft} />
-      <circle cx="66" cy="80" r="3.2" fill={COLORS.accentSoft} />
     </svg>
   );
 }
@@ -418,33 +403,73 @@ function ScreenShare() {
   );
 }
 
+// Xのロゴ（小さい見本用。lucideの X は閉じるボタンに使っているので別名にする）
+function XLogoMini({ size = 12 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+// 共有シートの丸いアイコン（小さい見本用）
+function MiniShareIcon({ label, bg, children }) {
+  return (
+    <div className="flex flex-col items-center gap-1 w-12">
+      <span className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ background: bg }}>
+        {children}
+      </span>
+      <span className="text-[7px] font-bold" style={{ color: COLORS.ink }}>{label}</span>
+    </div>
+  );
+}
+
 // 2. リストを友達にシェアする（前面：オーバーレイ＋共有シート。PhoneStageが独立レイヤーとして重ねる）
 function ShareOverlaySheet() {
   return (
     <>
       <div className="absolute inset-0 backdrop-blur-[1px]" style={{ backgroundColor: 'rgba(0,0,0,0.32)' }} />
       <div
-        className="relative rounded-t-3xl px-3 pt-3 pb-[25%]"
+        className="relative rounded-t-3xl px-3 pt-3 pb-[22%]"
         style={{ backgroundColor: '#fff', boxShadow: '0 -10px 24px rgba(0,0,0,0.18)' }}
       >
         <div className="flex items-center justify-between mb-2">
           <p className="font-maru font-bold text-[10px]">このリストを共有しよう</p>
           <X size={11} style={{ color: COLORS.inkSoft }} />
         </div>
+
+        {/* リスト名 */}
         <div
-          className="rounded-lg px-2 py-1.5 mb-1.5 flex items-center justify-between gap-2"
+          className="rounded-lg px-2 py-1.5 mb-2.5 flex items-center justify-between gap-2"
           style={{ backgroundColor: '#FCFBF8', border: `1px solid ${COLORS.border}` }}
         >
           <span className="text-[9px] font-bold truncate">子供用品をゆずります</span>
           <Pencil size={9} style={{ color: COLORS.indigo, flexShrink: 0 }} />
         </div>
-        <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 mb-1.5 text-[9px] font-bold" style={{ backgroundColor: COLORS.line, color: '#fff' }}>
-          <MessageCircle size={11} />
-          LINEで送る
+
+        {/* 共有先：LINE → X → ストーリーズ */}
+        <div className="flex justify-center gap-1 mb-2.5">
+          <MiniShareIcon label="LINE" bg={COLORS.line}>
+            <MessageCircle size={14} />
+          </MiniShareIcon>
+          <MiniShareIcon label="X" bg="#000">
+            <XLogoMini size={12} />
+          </MiniShareIcon>
+          <MiniShareIcon
+            label="ストーリーズ"
+            bg="linear-gradient(45deg, #F58529 0%, #DD2A7B 50%, #8134AF 80%, #515BD4 100%)"
+          >
+            <Instagram size={14} />
+          </MiniShareIcon>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[9px] font-bold" style={{ border: `1px solid ${COLORS.border}`, color: COLORS.ink }}>
+
+        {/* リンクをコピー */}
+        <div
+          className="flex items-center justify-center gap-1.5 rounded-full px-2.5 py-1.5 text-[9px] font-bold"
+          style={{ backgroundColor: '#FCFBF8', border: `1px solid ${COLORS.border}`, color: COLORS.ink }}
+        >
           <Link2 size={11} style={{ color: COLORS.indigo }} />
-          リンクをコピー
+          共有用リンクをコピー
         </div>
       </div>
     </>
