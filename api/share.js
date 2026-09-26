@@ -33,7 +33,7 @@ export default async function handler(req) {
     return Response.redirect(`${origin}/`, 302);
   }
 
-  let title = 'ゆずりたいものリスト';
+  let title = 'わたしのおゆずりしたいもの';
   let names = [];
   let openCount = 0;
 
@@ -42,7 +42,7 @@ export default async function handler(req) {
       fromSupabase(`lists?id=eq.${id}&select=title`),
       fromSupabase(`items?list_id=eq.${id}&select=name,status&order=created_at.desc`),
     ]);
-    if (lists[0]?.title) title = lists[0].title;
+          if (lists[0]?.title && lists[0].title !== 'ゆずりたいものリスト') title = lists[0].title;
     const open = items.filter((it) => it.status === 'open');
     openCount = open.length;
     names = open.slice(0, 3).map((it) => it.name);

@@ -60,7 +60,7 @@ const shorten = (s, n) => (s.length > n ? s.slice(0, n) + '…' : s);
 export default async function handler(req) {
   const id = new URL(req.url).searchParams.get('id') || '';
 
-  let title = 'ゆずりたいものリスト';
+  let title = 'わたしのおゆずりしたいもの';
   let items = [];
 
   // IDの形が正しいときだけSupabaseに問い合わせる
@@ -70,7 +70,7 @@ export default async function handler(req) {
         fromSupabase(`lists?id=eq.${id}&select=title`),
         fromSupabase(`items?list_id=eq.${id}&select=name,image,status&order=created_at.desc`),
       ]);
-      if (lists[0]?.title) title = lists[0].title;
+            if (lists[0]?.title && lists[0].title !== 'ゆずりたいものリスト') title = lists[0].title;
       items = its;
     } catch (_) {}
   }

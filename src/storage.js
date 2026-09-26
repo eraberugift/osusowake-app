@@ -41,7 +41,7 @@ function rowToList(row) {
 export async function createList(creatorId, { title, deadline }) {
   const { data, error } = await supabase
     .from('lists')
-    .insert({ creator_id: creatorId, title: title || 'ゆずりたいものリスト', deadline: deadline || null })
+    .insert({ creator_id: creatorId, title: title || 'わたしのおゆずりしたいもの', deadline: deadline || null })
     .select(LIST_COLUMNS)
     .single();
 
@@ -63,7 +63,7 @@ export async function fetchList(listId) {
 export async function updateListTitle(listId, title) {
   const { error } = await supabase
     .from('lists')
-    .update({ title: title || 'ゆずりたいものリスト' })
+    .update({ title: title || 'わたしのおゆずりしたいもの' })
     .eq('id', listId);
 
   if (error) throw error;

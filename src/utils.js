@@ -40,7 +40,7 @@ export function isPastDeadline(dateStr) {
 }
 
 export function defaultListTitle() {
-  return 'ゆずりたいものリスト';
+  return 'わたしのおゆずりしたいもの';
 }
 
 // トップページのURL（「トップに戻る」等で共用）

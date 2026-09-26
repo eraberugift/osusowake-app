@@ -58,7 +58,7 @@ export default function ShareSheet() {
     <BottomSheet onClose={close}>
       <h3 className="font-maru font-bold text-base mb-3 pr-6">このリストを共有しよう</h3>
 
-      <p className="text-[11px] font-bold mb-1.5" style={{ color: COLORS.inkSoft }}>リスト名</p>
+      <p className="text-[11px] font-bold mb-1.5" style={{ color: COLORS.inkSoft }}>リスト名（友達にも表示されます）</p>
       <div
         className="mb-4 px-3 py-2.5 rounded-xl flex items-center gap-2 transition-colors"
         style={{
