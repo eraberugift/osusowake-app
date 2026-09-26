@@ -185,7 +185,7 @@ export default function ShareSheet() {
         </div>
       )}
 
-      <div className="pt-4 pb-6 border-t" style={{ borderColor: COLORS.border }}>
+      <div className="pt-4 border-t" style={{ borderColor: COLORS.border }}>
         <EmailBlock
           dropUp
           notifyEmail={notifyEmail}
