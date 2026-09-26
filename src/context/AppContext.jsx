@@ -372,15 +372,16 @@ export function AppProvider({ children }) {
     }
   };
 
-    // 共有用のURL（/s/リストID）。末尾の v はアイテムの数で、
-  // 出品が増えたり減ったりしたらLINEのカードも新しく作り直されるようにするため
+  // 共有用のURL（/s/リストID）
+  // v はカードの作り直し用。デザインを変えたら CARD_VERSION の数字を1つ上げる
+  const CARD_VERSION = 2;
   const openCount = items.filter((it) => it.status === 'open').length;
   const shareUrl = currentListId
-    ? `${window.location.origin}/s/${currentListId}?v=${items.length}-${openCount}`
+    ? `${window.location.origin}/s/${currentListId}?v=${CARD_VERSION}-${items.length}-${openCount}`
     : window.location.href;
   const shareText =
-    `「${list?.title || 'ゆずりたいものリスト'}」を作りました！\n` +
-    `欲しいものがあれば「これ欲しい！」を押してね👇\n` +
+    '大切に使っていたけれど、使わなくなったものをリストにしました。\n' +
+    '欲しいものがあれば「これ欲しい！」ボタンで教えてね\n' +
     shareUrl;
   const lineShareUrl = `https://line.me/R/share?text=${encodeURIComponent(shareText)}`;
 

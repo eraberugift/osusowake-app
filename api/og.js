@@ -2,22 +2,35 @@ import { ImageResponse } from '@vercel/og';
 
 // LINEなどのプレビューカード用の画像（1200×630）を作る
 // 使い方：/api/og?id=リストID
+// デザイン：クリーム色の便箋に、白いフチの写真を少し傾けて並べる
 export const config = { runtime: 'edge' };
 
 const W = 1200;
 const H = 630;
-const BAND = 130; // 下の帯の高さ
-const PAD = 20;
-const GAP = 16;
+
+// 写真のフチ（ポラロイド風）
+const PHOTO = 256;        // 写真そのものの大きさ
+const FRAME_PAD = 12;     // フチの太さ（上・左右）
+const FRAME_BOTTOM = 34;  // フチの太さ（下だけ少し広く）
+const FRAME_GAP = 56;     // 写真同士のすき間
+const TILTS = [
+  'rotate(-4deg)',
+  'rotate(2deg) translateY(-8px)',
+  'rotate(-2deg)',
+];
 
 const C = {
-  bg: '#FDFBF9',
+  paper: '#FFF8F0',
   ink: '#2E2A26',
   accent: '#E2795D',
   accentDeep: '#C25F45',
   accentSoft: '#FBE7E0',
   tile: '#F0ECE2',
+  frameLine: '#EFE2D6',
 };
+
+const TAGLINE = '大切にしてきたものを、おゆずりします';
+const LOGO = 'ゆずリス';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
@@ -34,8 +47,8 @@ async function fromSupabase(path) {
 }
 
 // 画像に使う文字だけをGoogle Fontsから読み込む
-async function loadFont(text) {
-  const url = `https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@800&text=${encodeURIComponent(text)}`;
+async function loadFont(family, weight, text) {
+  const url = `https://fonts.googleapis.com/css2?family=${family}:wght@${weight}&text=${encodeURIComponent(text)}`;
   const css = await (await fetch(url)).text();
   const m = css.match(/src: url\((.+?)\) format\('(opentype|truetype)'\)/);
   if (!m) throw new Error('font not found');
@@ -66,51 +79,65 @@ export default async function handler(req) {
   const open = items.filter((it) => it.status === 'open');
   const picks = [...open.filter((it) => it.image), ...open.filter((it) => !it.image)].slice(0, 3);
 
-  const n = Math.max(picks.length, 1);
-  const tileW = Math.floor((W - PAD * 2 - GAP * (n - 1)) / n);
-  const tileH = H - BAND - PAD - GAP;
+  const shownTitle = shorten(title, 16);
+  const pickNames = picks.map((it) => shorten(it.name, 8));
 
+  // 写真1枚ぶん（白いフチつき）
+  const frame = (inner, i) =>
+    h('div', {
+      display: 'flex',
+      padding: `${FRAME_PAD}px ${FRAME_PAD}px ${FRAME_BOTTOM}px`,
+      backgroundColor: '#fff',
+      border: `1px solid ${C.frameLine}`,
+      borderRadius: 8,
+      boxShadow: '0 8px 20px rgba(120, 90, 60, 0.16)',
+      transform: TILTS[i % TILTS.length],
+    }, [inner]);
+
+  // 写真がないときは、品名を書いたやわらかい色のタイル
   const textTile = (text, bg) =>
     h('div', {
-      width: tileW, height: tileH, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      backgroundColor: bg, borderRadius: 24, color: C.ink, fontSize: 44, padding: 24, textAlign: 'center',
+      width: PHOTO, height: PHOTO, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: bg, borderRadius: 4, color: C.ink,
+      fontFamily: 'Maru', fontSize: 34, padding: 20, textAlign: 'center',
     }, text);
 
-  const tiles = picks.length
-    ? picks.map((it) =>
-        it.image
-          ? { type: 'img', props: { src: it.image, width: tileW, height: tileH, style: { objectFit: 'cover', borderRadius: 24 } } }
-          : textTile(shorten(it.name, 12), C.tile)
+  const photos = picks.length
+    ? picks.map((it, i) =>
+        frame(
+          it.image
+            ? { type: 'img', props: { src: it.image, width: PHOTO, height: PHOTO, style: { objectFit: 'cover', borderRadius: 4 } } }
+            : textTile(pickNames[i], C.tile),
+          i
+        )
       )
-    : [textTile('ゆずリス', C.accentSoft)];
-
-  const pill = open.length > 0 ? `募集中 ${open.length}件` : '受付終了';
-  const shownTitle = shorten(title, 16);
+    : [frame(textTile(LOGO, C.accentSoft), 0)];
 
   const root = h('div', {
-    width: W, height: H, display: 'flex', flexDirection: 'column',
-    backgroundColor: C.bg, fontFamily: 'Maru',
+    width: W, height: H, display: 'flex', flexDirection: 'column', alignItems: 'center',
+    backgroundColor: C.paper, paddingTop: 44, position: 'relative',
   }, [
-    // 上：写真3枚
-    h('div', { display: 'flex', gap: GAP, padding: `${PAD}px ${PAD}px ${GAP}px` }, tiles),
-    // 下：リスト名と件数の帯
+    // 手書き風のひとこと
+    h('div', { display: 'flex', fontFamily: 'Hand', fontSize: 40, color: C.accentDeep, letterSpacing: 2 }, TAGLINE),
+    // リスト名
+    h('div', { display: 'flex', fontFamily: 'Maru', fontSize: 60, color: C.ink, marginTop: 6 }, shownTitle),
+    // 写真
+    h('div', { display: 'flex', gap: FRAME_GAP, marginTop: 40 }, photos),
+    // 右下のロゴ
     h('div', {
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      height: BAND, padding: '0 40px', backgroundColor: C.accent,
-    }, [
-      h('div', { display: 'flex', color: '#fff', fontSize: 54 }, shownTitle),
-      h('div', {
-        display: 'flex', backgroundColor: '#fff', color: C.accentDeep,
-        fontSize: 36, padding: '8px 28px', borderRadius: 999,
-      }, pill),
-    ]),
+      display: 'flex', position: 'absolute', right: 64, bottom: 36,
+      fontFamily: 'Maru', fontSize: 32, color: C.accent,
+    }, LOGO),
   ]);
 
-  // 画像に出てくる文字をすべて渡して、その分だけフォントを読む
-  const allText = [shownTitle, pill, 'ゆずリス…', ...picks.map((it) => shorten(it.name, 12))].join('');
-  let fonts = [];
+  // 画像に出てくる文字の分だけフォントを読む
+  const maruText = [shownTitle, LOGO, '…', ...pickNames].join('');
+  const fonts = [];
   try {
-    fonts = [{ name: 'Maru', data: await loadFont(allText), weight: 800, style: 'normal' }];
+    fonts.push({ name: 'Maru', data: await loadFont('M+PLUS+Rounded+1c', 800, maruText), weight: 800, style: 'normal' });
+  } catch (_) {}
+  try {
+    fonts.push({ name: 'Hand', data: await loadFont('Klee+One', 600, TAGLINE), weight: 600, style: 'normal' });
   } catch (_) {}
 
   return new ImageResponse(root, {

@@ -49,10 +49,11 @@ export default async function handler(req) {
   } catch (_) {}
 
   const pageTitle = `${title}｜ゆずリス`;
+  // カードの下に出る説明文（やさしい「おゆずり」の雰囲気で）
   const description =
     openCount > 0
-      ? `${names.join('、')}${openCount > names.length ? ` など${openCount}件` : ''}。欲しいものがあれば早い者勝ち！`
-      : 'もう使わないものを友達にゆずるリストです。';
+      ? `${names.join('、')}など。大切にしてきたものを、次に使ってくれる方へおゆずりします。`
+      : '大切にしてきたものを、次に使ってくれる方へおゆずりするリストです。';
 
   const listPage = `${origin}/?list=${id}&view=guest`;
   const shareUrl = `${origin}/s/${id}${v ? `?v=${encodeURIComponent(v)}` : ''}`;
