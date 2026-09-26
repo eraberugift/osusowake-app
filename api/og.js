@@ -47,12 +47,15 @@ async function fromSupabase(path) {
 }
 
 // 画像に使う文字だけをGoogle Fontsから読み込む
-async function loadFont(family, weight, text) {
-  const url = `https://fonts.googleapis.com/css2?family=${family}:wght@${weight}&text=${encodeURIComponent(text)}`;
-  const css = await (await fetch(url)).text();
-  const m = css.match(/src: url\((.+?)\) format\('(opentype|truetype)'\)/);
-  if (!m) throw new Error('font not found');
-  return (await fetch(m[1])).arrayBuffer();
+// （日本語フォントは複数のファイルに分かれて返ってくることがあるので、全部読む）
+async function addFont(fonts, name, family, weight, text) {
+  try {
+    const url = `https://fonts.googleapis.com/css2?family=${family}:wght@${weight}&text=${encodeURIComponent(text)}`;
+    const css = await (await fetch(url)).text();
+    const files = [...css.matchAll(/src: url\((.+?)\) format\('(opentype|truetype)'\)/g)].map((m) => m[1]);
+    const datas = await Promise.all(files.map((f) => fetch(f).then((r) => r.arrayBuffer())));
+    datas.forEach((data) => fonts.push({ name, data, weight, style: 'normal' }));
+  } catch (_) {}
 }
 
 const shorten = (s, n) => (s.length > n ? s.slice(0, n) + '…' : s);
@@ -60,6 +63,7 @@ const shorten = (s, n) => (s.length > n ? s.slice(0, n) + '…' : s);
 export default async function handler(req) {
   const id = new URL(req.url).searchParams.get('id') || '';
 
+  // タイトルが初期値のままなら、やさしい固定の文言にする
   let title = 'わたしのおゆずりしたいもの';
   let items = [];
 
@@ -70,7 +74,7 @@ export default async function handler(req) {
         fromSupabase(`lists?id=eq.${id}&select=title`),
         fromSupabase(`items?list_id=eq.${id}&select=name,image,status&order=created_at.desc`),
       ]);
-            if (lists[0]?.title && lists[0].title !== 'ゆずりたいものリスト') title = lists[0].title;
+      if (lists[0]?.title && lists[0].title !== 'ゆずりたいものリスト') title = lists[0].title;
       items = its;
     } catch (_) {}
   }
@@ -99,7 +103,7 @@ export default async function handler(req) {
     h('div', {
       width: PHOTO, height: PHOTO, display: 'flex', alignItems: 'center', justifyContent: 'center',
       backgroundColor: bg, borderRadius: 4, color: C.ink,
-      fontFamily: 'Maru', fontSize: 34, padding: 20, textAlign: 'center',
+      fontFamily: 'Maru', fontWeight: 800, fontSize: 34, padding: 20, textAlign: 'center',
     }, text);
 
   const photos = picks.length
@@ -118,27 +122,25 @@ export default async function handler(req) {
     backgroundColor: C.paper, paddingTop: 44, position: 'relative',
   }, [
     // 手書き風のひとこと
-    h('div', { display: 'flex', fontFamily: 'Hand', fontSize: 40, color: C.accentDeep, letterSpacing: 2 }, TAGLINE),
+    h('div', { display: 'flex', fontFamily: 'Hand', fontWeight: 600, fontSize: 40, color: C.accentDeep, letterSpacing: 2 }, TAGLINE),
     // リスト名
-    h('div', { display: 'flex', fontFamily: 'Maru', fontSize: 60, color: C.ink, marginTop: 6 }, shownTitle),
+    h('div', { display: 'flex', fontFamily: 'Maru', fontWeight: 800, fontSize: 60, color: C.ink, marginTop: 6 }, shownTitle),
     // 写真
     h('div', { display: 'flex', gap: FRAME_GAP, marginTop: 40 }, photos),
     // 右下のロゴ
     h('div', {
       display: 'flex', position: 'absolute', right: 64, bottom: 36,
-      fontFamily: 'Maru', fontSize: 32, color: C.accent,
+      fontFamily: 'Maru', fontWeight: 800, fontSize: 32, color: C.accent,
     }, LOGO),
   ]);
 
   // 画像に出てくる文字の分だけフォントを読む
   const maruText = [shownTitle, LOGO, '…', ...pickNames].join('');
   const fonts = [];
-  try {
-    fonts.push({ name: 'Maru', data: await loadFont('M+PLUS+Rounded+1c', 800, maruText), weight: 800, style: 'normal' });
-  } catch (_) {}
-  try {
-    fonts.push({ name: 'Hand', data: await loadFont('Klee+One', 600, TAGLINE), weight: 600, style: 'normal' });
-  } catch (_) {}
+  await Promise.all([
+    addFont(fonts, 'Maru', 'M+PLUS+Rounded+1c', 800, maruText),
+    addFont(fonts, 'Hand', 'Klee+One', 600, TAGLINE),
+  ]);
 
   return new ImageResponse(root, {
     width: W,
