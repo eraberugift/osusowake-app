@@ -8,24 +8,24 @@ import EmailBlock from '../components/EmailBlock.jsx';
 // ストーリーズに投稿するまでの流れ（案内に表示）
 const STORY_STEPS = [
   {
-    text: '出てきたアプリの一覧から「Instagram」→「ストーリーズ」を選ぶ',
-    note: '見当たらないときは、一覧を右にスクロールするか「その他」から',
+    text: 'アプリの一覧から「Instagram」を選ぶ',
+    note: '見当たらないときは、アプリ一覧を右にスクロールするか「その他」から',
   },
   {
-    text: 'スタンプ →「リンク」を選んで貼り付ける（任意）',
-    note: 'リンクは自動でコピーされます。貼らなくても、画像のQRコードから見てもらえます',
+    text: '「ストーリーズ」を選ぶ',
   },
   {
-    text: '好きな位置に置いて、投稿する',
+    text: 'スタンプの「リンク」で貼り付け',
+    note: 'リンクはコピー済みなので、そのままペーストするだけ。貼らなくても、画像のQRコードから見てもらえます',
   },
 ];
 
 // プレビューに使う見本（本番のVercelで作る固定の画像）
 // 手元の開発画面（localhost）でも表示できるように、本番のURLを直接指定している
-const SAMPLE_ORIGIN = 'https://yuzulist-app.vercel.app';
-const SAMPLE_LINE_IMAGE = `${SAMPLE_ORIGIN}/api/og?sample=1`;
-const SAMPLE_STORY_IMAGE = `${SAMPLE_ORIGIN}/api/story?sample=1`;
+const SAMPLE_LINE_IMAGE = '/share-sample-line.png';
+const SAMPLE_STORY_IMAGE = '/share-sample-story.png';
 const SAMPLE_TITLE = '子供用品をゆずります'; // api/_sample.js の title と同じにする
+const SAMPLE_HOST = 'yuzulist-app.vercel.app'; // 見本に表示するアドレス（独自ドメインにしたらここを変える）
 
 // Xのロゴ（lucideに無いので自前のSVG）
 function XLogo({ size = 22 }) {
@@ -300,18 +300,18 @@ export default function ShareSheet() {
             >
               {lineMessage}
               {'\n'}
-              <span className="underline" style={{ color: '#1E4FA0' }}>{window.location.origin}/s/…</span>
+              <span className="underline" style={{ color: '#1E4FA0' }}>https://{SAMPLE_HOST}/s/…</span>
             </div>
             <div className="w-[88%] rounded-xl overflow-hidden" style={{ backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <PreviewImage src={SAMPLE_LINE_IMAGE} alt="LINEに表示されるカードの見本" aspect="1200 / 630" bg="#FFF8F0" />
               <div className="px-2.5 py-2">
                 <p className="text-[11px] font-bold truncate" style={{ color: COLORS.ink }}>{SAMPLE_TITLE}｜ゆずリス</p>
-                <p className="text-[10px]" style={{ color: COLORS.inkSoft }}>{window.location.host}</p>
+                <p className="text-[10px]" style={{ color: COLORS.inkSoft }}>{SAMPLE_HOST}</p>
               </div>
             </div>
           </div>
           <p className="text-[10px] text-center -mt-2 mb-4" style={{ color: COLORS.inkSoft }}>
-            ※画像は見本です。実際はあなたのリストの写真とリスト名が入ります
+            ※見本です。実際はあなたのリストの写真が入ります
           </p>
 
           <div className="flex gap-2">
@@ -337,10 +337,7 @@ export default function ShareSheet() {
       {/* ---- ストーリーズの案内（アイコンを押したときだけ出る） ---- */}
       {storyGuideOpen && (
         <CenterModal onClose={() => setStoryGuideOpen(false)} closable>
-          <h3 className="font-maru font-bold text-base mb-1 pr-6">インスタのストーリーズでシェア</h3>
-          <p className="text-xs leading-relaxed mb-3" style={{ color: COLORS.inkSoft }}>
-            ゆずリスが作った画像を、そのままストーリーズに載せられます
-          </p>
+          <h3 className="font-maru font-bold text-base mb-4 pr-6">ストーリーズでシェア</h3>
 
           {/* 投稿される画像の見本 */}
           <div
