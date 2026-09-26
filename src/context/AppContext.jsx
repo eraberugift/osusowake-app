@@ -401,9 +401,12 @@ export function AppProvider({ children }) {
     `「${displayTitle}」`,
     openItems.length > 0 ? `${pickNames}${openItems.length > 3 ? `など${openItems.length}点` : ''}` : null,
     '欲しいものがあれば「これ欲しい！」で教えてね',
-  ].filter(Boolean).join('\n');
-    const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(xText)}&url=${encodeURIComponent(shareUrl)}`;
-
+    '#ゆずリス',
+    '',        // ← 空行（リンクの前の改行）
+    shareUrl,
+  ].filter((line) => line !== null).join('\n');
+  const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(xText)}`;
+  
   // Instagramストーリーズ
   // iPhoneは「タップした瞬間」に共有しないと失敗するので、画像は共有シートを開いた時点で先に読み込んでおく
   const storyImageUrl = currentListId
