@@ -6,7 +6,7 @@ import EmailInputWithHistory from './EmailInputWithHistory.jsx';
 // 通知メールアドレスの登録・変更・ログアウトをまとめたブロック
 export default function EmailBlock({
   notifyEmail, editingEmail, emailInput, setEmailInput, savingEmail,
-  onSubmit, onUpdate, onStartEdit, onCancelEdit, onLogout, helperText,
+  onSubmit, onUpdate, onStartEdit, onCancelEdit, onLogout, helperText, dropUp,
 }) {
   if (notifyEmail && !editingEmail) {
     return (
@@ -28,7 +28,7 @@ export default function EmailBlock({
         <div className="text-[11px] mb-1.5 leading-relaxed" style={{ color: COLORS.inkSoft }}>{helperText}</div>
       )}
       <div className="flex gap-2">
-        <EmailInputWithHistory value={emailInput} onChange={setEmailInput} placeholder="メールアドレス（任意）" />
+        <EmailInputWithHistory value={emailInput} onChange={setEmailInput} placeholder="メールアドレス（任意）" dropUp={dropUp} />
         <button
           onClick={editingEmail ? onUpdate : onSubmit}
           disabled={savingEmail}

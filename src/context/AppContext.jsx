@@ -372,22 +372,74 @@ export function AppProvider({ children }) {
     }
   };
 
-  // 共有用のURL（/s/リストID）
+  // ------- 共有 -------
   // v はカードの作り直し用。アイテム数やタイトルが変わるとURLも変わり、
-  // LINEが新しいカードを読み込み直す。デザインを変えたら CARD_VERSION を1つ上げる
+  // LINEやXが新しいカードを読み込み直す。デザインを変えたら CARD_VERSION を1つ上げる
   const CARD_VERSION = 3;
-  const openCount = items.filter((it) => it.status === 'open').length;
+  const openItems = items.filter((it) => it.status === 'open');
   const titleHash = [...(list?.title || '')]
     .reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 0)
     .toString(36);
+  const shareVersion = `${CARD_VERSION}-${items.length}-${openItems.length}-${titleHash}`;
   const shareUrl = currentListId
-    ? `${window.location.origin}/s/${currentListId}?v=${CARD_VERSION}-${items.length}-${openCount}-${titleHash}`
+    ? `${window.location.origin}/s/${currentListId}?v=${shareVersion}`
     : window.location.href;
+
+  // LINE
   const shareText =
     '大切に使っていたけれど、使わなくなったものをリストにしました。\n' +
     '欲しいものがあれば「これ欲しい！」ボタンで教えてね\n' +
     shareUrl;
   const lineShareUrl = `https://line.me/R/share?text=${encodeURIComponent(shareText)}`;
+
+  // X（リストの中身から文章を自動で作る）
+  const displayTitle =
+    !list?.title || list.title === 'ゆずりたいものリスト' ? 'わたしのおゆずりしたいもの' : list.title;
+  const pickNames = openItems.slice(0, 3).map((it) => it.name).join('、');
+  const xText = [
+    '大切にしてきたものを、おゆずりします🐿️',
+    `「${displayTitle}」`,
+    openItems.length > 0 ? `${pickNames}${openItems.length > 3 ? `など${openItems.length}点` : ''}` : null,
+    '欲しいものがあれば「これ欲しい！」で教えてね',
+  ].filter(Boolean).join('\n');
+  const xShareUrl = `https://x.com/intent/post?text=${encodeURIComponent(xText)}&url=${encodeURIComponent(shareUrl)}`;
+
+  // Instagramストーリーズ
+  // iPhoneは「タップした瞬間」に共有しないと失敗するので、画像は共有シートを開いた時点で先に読み込んでおく
+  const storyImageUrl = currentListId
+    ? `${window.location.origin}/api/story?id=${currentListId}&v=${shareVersion}`
+    : null;
+  const [storyFile, setStoryFile] = useState(null);
+
+  useEffect(() => {
+    if (!shareSheetOpen || !storyImageUrl) return;
+    let alive = true;
+    setStoryFile(null);
+    fetch(storyImageUrl)
+      .then((r) => r.blob())
+      .then((b) => { if (alive) setStoryFile(new File([b], 'yuzulist-story.png', { type: 'image/png' })); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [shareSheetOpen, storyImageUrl]);
+
+  const shareToInstagram = () => {
+    navigator.clipboard?.writeText(shareUrl).catch(() => {});
+
+    // スマホで画像共有ができるとき → 共有メニューへ
+    if (storyFile && navigator.canShare?.({ files: [storyFile] })) {
+      navigator.share({ files: [storyFile] })
+        .then(() => showToast('スタンプの「リンク」から、コピーしたリンクを貼ってね', 4500))
+        .catch(() => {});
+      return;
+    }
+    if (!storyFile && navigator.canShare) {
+      showToast('画像を準備中です。もう一度押してね');
+      return;
+    }
+    // PCなど → 画像を別タブで開く
+    window.open(storyImageUrl, '_blank');
+    showToast('画像を保存して、インスタに投稿してね', 4000);
+  };
 
   const copyLink = () => {
     navigator.clipboard?.writeText(shareUrl).catch(() => {});
@@ -485,7 +537,7 @@ export function AppProvider({ children }) {
     preview, compressing, handleFile, fileRef,
     showExample, setShowExample,
     // 共有・タイトル編集
-    shareSheetOpen, setShareSheetOpen, shareUrl, lineShareUrl, copyLink,
+    shareSheetOpen, setShareSheetOpen, shareUrl, lineShareUrl, xShareUrl, shareToInstagram, copyLink,
     adminUrl, copyAdminLink,
     titleEditing, setTitleEditing, titleInput, setTitleInput, savingTitle, handleSaveTitle,
     // アイテム詳細・操作
