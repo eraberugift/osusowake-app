@@ -54,7 +54,7 @@ export default async function handler(req) {
   const moreCount = openCount - 3;
   const description =
     '大切にしてきたものを、次に使ってくれる方へおゆずりします。' +
-    (moreCount > 0 ? `写真の他にもあります。` : '');
+    (moreCount > 0 ? `他${moreCount}品` : '');
 
   const listPage = `${origin}/?list=${id}&view=guest`;
   const shareUrl = `${origin}/s/${id}${v ? `?v=${encodeURIComponent(v)}` : ''}`;
