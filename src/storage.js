@@ -97,7 +97,7 @@ export async function fetchListsByIds(ids) {
   if (!ids || ids.length === 0) return [];
   const { data, error } = await supabase
     .from('lists')
-    .select(LIST_COLUMNS)
+    .select(`${LIST_COLUMNS}, items!inner(id)`)
     .in('id', ids);
 
   if (error) throw error;

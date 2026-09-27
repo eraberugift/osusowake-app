@@ -25,7 +25,7 @@ const STORY_STEPS = [
 const SAMPLE_LINE_IMAGE = '/share-sample-line.png';
 const SAMPLE_STORY_IMAGE = '/share-sample-story.png';
 const SAMPLE_TITLE = '子供用品をゆずります'; // api/_sample.js の title と同じにする
-const SAMPLE_HOST = 'yuzulist-app.vercel.app'; // 見本に表示するアドレス（独自ドメインにしたらここを変える）
+const SAMPLE_HOST = 'yuzulist.com'; // 見本に表示するアドレス（独自ドメインにしたらここを変える）
 
 // Xのロゴ（lucideに無いので自前のSVG）
 function XLogo({ size = 22 }) {
