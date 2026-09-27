@@ -22,6 +22,36 @@ export function getCurrentUserId() {
   return authPromise;
 }
 
+// ------- 流入元（どのリンクから来たか）-------
+// X のプロフィールなどのリンクには ?src=x_profile のような目印が付いている。
+// 最初に開いたときにこの端末に覚えておき、リストを作ったときに一緒に保存する。
+// 同じURLが友達に転送されても混ざらないよう、読み取ったあとはURLから src を消す。
+
+const SRC_KEY = 'yuzulist-src';
+const SRC_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
+
+(function captureSource() {
+  try {
+    const url = new URL(window.location.href);
+    const src = url.searchParams.get('src');
+    if (!src) return;
+    if (SRC_PATTERN.test(src)) localStorage.setItem(SRC_KEY, src);
+    url.searchParams.delete('src');
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+  } catch (e) {
+    // 流入元が取れなくてもアプリの動作には影響させない
+  }
+})();
+
+function getSource() {
+  try {
+    const src = localStorage.getItem(SRC_KEY);
+    return src && SRC_PATTERN.test(src) ? src : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 // ------- リスト関連 -------
 
 // ゲストにも見せてよい列だけを指定する（admin_key / claimer_name は含めない）
@@ -41,7 +71,12 @@ function rowToList(row) {
 export async function createList(creatorId, { title, deadline }) {
   const { data, error } = await supabase
     .from('lists')
-    .insert({ creator_id: creatorId, title: title || 'わたしのおゆずりしたいもの', deadline: deadline || null })
+    .insert({
+      creator_id: creatorId,
+      title: title || 'わたしのおゆずりしたいもの',
+      deadline: deadline || null,
+      src: getSource(),
+    })
     .select(LIST_COLUMNS)
     .single();
 

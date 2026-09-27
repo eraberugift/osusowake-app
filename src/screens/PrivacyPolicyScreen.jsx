@@ -23,7 +23,7 @@ export default function PrivacyPolicyScreen() {
 
       <main className="max-w-md mx-auto px-4 py-6 text-sm leading-relaxed">
         <h1 className="font-maru font-bold text-lg mb-1">プライバシーポリシー</h1>
-        <p className="text-xs mb-6" style={{ color: COLORS.inkSoft }}>制定日：2026年9月22日</p>
+        <p className="text-xs mb-6" style={{ color: COLORS.inkSoft }}>制定日：2026年9月22日／改定日：2026年9月27日</p>
 
         <p className="mb-6">
           ゆずリス（以下「本サービス」）は、個人開発者（以下「運営者」）が
@@ -37,6 +37,7 @@ export default function PrivacyPolicyScreen() {
             <li>リストのタイトル・期限</li>
             <li>出品するアイテムの名称・状態・説明文・写真</li>
             <li>端末に保存される識別用ID（ログイン状態の維持のため）</li>
+            <li>本サービスを訪れたきっかけとなったリンクの種類（例：「Xのプロフィールから」。個人を特定する情報は含みません）</li>
           </ul>
         </Section>
 
@@ -45,7 +46,7 @@ export default function PrivacyPolicyScreen() {
             <li>本サービスの提供・アイテムの表示</li>
             <li>マッチング成立時などの通知メール送信</li>
             <li>機種変更やCookie削除後もリストを復元できるようにするため</li>
-            <li>不具合対応・サービス改善</li>
+            <li>不具合対応・サービス改善（どの案内からの利用が多いかなどの集計を含みます）</li>
           </ul>
         </Section>
 
@@ -61,6 +62,8 @@ export default function PrivacyPolicyScreen() {
         <Section title="4. Cookie・端末内保存について">
           ログイン状態の維持やメールアドレスの入力補完のため、お使いの端末のブラウザ内
           （localStorage）にデータを保存します。これらは運営者のサーバーには送信されません。
+          ただし、本サービスを訪れたきっかけとなったリンクの種類は、リストを作成したときに
+          リストと一緒に保存し、サービス改善のための集計に利用します。
         </Section>
 
         <Section title="5. 情報の削除について">
